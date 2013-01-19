@@ -1,0 +1,214 @@
+body
+{
+    background-color: rgb(238, 162, 57); 
+}
+
+#doc
+{
+    background-color: white;
+    margin-left: auto;
+    margin-right: auto;
+    border: 2px solid black;
+    width: 850px;
+    height: 820px;
+}
+
+#heading
+{
+    width: 780px;
+    height: 104px;
+    background-color: rgb(211, 255, 193);
+    border: 10px solid rgb(151, 85, 36);
+    margin: 15px auto;
+    margin-bottom: 10px;
+}
+
+#logo
+{
+    float: left;
+    border: 2px solid rgb(81, 40, 0);
+    margin: 2.5px;
+}
+
+#welcome
+{
+    float: left;
+    margin-top: 40px;
+    margin-left: 10px;
+}
+
+#heading div p
+{
+    font-family: serif;
+    font-size: 24px;
+    font-style: oblique;
+    color: rgb(98, 94, 4);
+}
+
+#login
+{
+    width: 230px;
+    height: 20px;
+    float: right;
+}
+
+#ins
+{
+    margin-left: 18px;
+}
+
+#comp, #ins
+{
+    margin-top: 20px;
+    float: left;
+}
+
+#button
+{
+    margin-top: 3px;
+    margin-left: 123px;
+    width: 100px;
+    height: 25px;
+    font-size: 15px;
+}
+
+#ins h4
+{
+    margin-top: 1px;
+    margin-bottom: 3.5px;
+    font-size: 15px;
+}
+
+#bardiv
+{
+    margin: 8px;
+    width: 850px;
+}
+
+#bar
+{
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+    font-size: 20px;
+}
+
+#bar li
+{
+    float: left;
+}
+
+#bar a:link, #bar a:visited
+{
+    display: block;
+    width: 200px;
+    font-weight: bold;
+    color: white/*rgb(99, 63, 48)*/;
+    background-color: rgb(151, 85, 36);
+    text-align: center;
+    padding: 4px;
+    text-decoration: none;
+}
+
+#bar a:hover, #bar a:active
+{
+    background-color: rgb(92, 52, 22);
+}
+
+#main
+{
+    width: 850px;
+    mirgin: auto;
+}
+
+#main div
+{
+    float: left;
+}
+
+#signup
+{
+    height: 605px;
+    width: 370px;
+    border: 2px solid rgb(151, 85, 36);
+    background-color: rgb(211, 255, 193);
+    margin-left: 10px;
+    margin-right: 4px;
+    margin-top: 10px;
+    overflow: auto;
+}
+
+#signup h4
+{
+    font-family: Tahoma, Geneva, sans-serif;
+    font-weight: 900;
+    font-size: 18px;
+    margin-left: 20px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+#a
+{
+    float: left;
+    margin-left: 25px;
+}
+
+#a p
+{
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+#b
+{
+    float: left;
+    margin-left: 45px;
+}
+
+.tb
+{
+    width: 180px;    
+}
+
+.rb
+{
+    margin-left: 17.5px;
+}
+
+#a input, #b input
+{
+    margin-top: 9px;
+}
+
+#submit
+{
+    width: 100px;
+    height: 25px;
+    font-size: 15px;
+    margin-top: 5px;
+    margin-left: 240px;
+}
+
+#info
+{
+    height: 605px;
+    width: 435px;
+    border: 2px solid rgb(151, 85, 36);
+    background-color: rgb(211, 255, 193);
+    margin-left: 10px;
+    margin-top: 10px;
+    overflow: auto;
+}
+
+#signup h2, #info h2
+{
+    font-family: Tahoma, Geneva, sans-serif;
+    font-weight: 900;
+    font-size: 25px;
+    text-decoration: underline;
+    margin-left: 10px;
+    margin-bottom: 10px;
+}

@@ -32,21 +32,26 @@ class userstate{
 		$zipcode = $request['zipcode'];
 		
 		require("db.php");
-		$query1 = "INSERT INTO users (username, password) VALUES ('".mysql_real_escape_string($un)."','".mysql_real_escape_string($pw)."'";
+		$query1 = "INSERT INTO users (username, password) VALUES ('".mysql_real_escape_string($un)."','".mysql_real_escape_string($pw)."')";
 		$result1 = mysql_query($query1, $db) or die(mysql_error());
 		if (!$result1){
 			return -1;
 		}else{
+			$useridquery = mysql_query("SELECT LAST_INSERT_ID()", $db) or die(mysql_error());
+			$useridresult = mysql_fetch_assoc($useridquery);
+			#var_dump($useridresult);
+			$userid = $useridresult['LAST_INSERT_ID()'];
 			
-			$query2 = "INSERT INTO preferences (user_id, first_name, last_name, gender, email, phone_number, address, city, state, zipcode) VALUES ('".
-			LAST_INSERT_ID()."','".mysql_real_escape_string($fn)."','".mysql_real_escape_string($ln).mysql_real_escape_string($gender)."','".mysql_real_escape_string($email)."','".
+			$query2 = "INSERT INTO profiles (user_id, first_name, last_name, gender, email, phone, address, city, state, zipcode) VALUES ('".
+			$userid."','".mysql_real_escape_string($fn)."','".mysql_real_escape_string($ln)."','".mysql_real_escape_string($gender)."','".mysql_real_escape_string($email)."','".
 			mysql_real_escape_string($phone)."','".mysql_real_escape_string($address)."','".mysql_real_escape_string($city)."','".mysql_real_escape_string($state)."','".
-			mysql_real_escape_string($zipcode)."'";
-			$result2 = mysql_query($query1, $db) or die(mysql_error());
-			if (!result2){
+			mysql_real_escape_string($zipcode)."')";
+			$result2 = mysql_query($query2, $db) or die(mysql_error());
+			if (!$result2){
 				return -1;
 			}else{
 				responder::respondSimple("signup_success");
+				return userstate::login($un, $pw);
 			}
 		}
 	}
@@ -54,5 +59,6 @@ class userstate{
 	public static function logout($userid){
 		require("matcher.php");
 		matcher::stopShaking($userid);
+		responder::respondSimple("logout_success");
 	}
 }

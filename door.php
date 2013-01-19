@@ -13,12 +13,18 @@ if ($action=='login'){
 	if ($_SESSION['log']==0){
 		$result = userstate::login($_POST['username'],$_POST['password']);
 		$_SESSION['user']=$result;
+		$_SESSION['log']==1;
 	}else{
 		// notify the user that it's an illegal action
 	}
 }else if ($action=='signup'){
 	if ($_SESSION['log']==0){
-		userstate::signup($_POST['username'],$_POST['password']);
+		$result = userstate::signup($_POST);
+		if ($result!=-1 && $result!=0){ // "sign up failed"
+			$_SESSION['user'] = $result;
+			$_SESSION['log']==1;
+		}else{
+		}
 	}else{
 		// notify the user that it's an illegal action
 	}
