@@ -1,2 +1,4 @@
 <?php
-$db = mysql_connect("localhost", "6470user", "6470") or die(mysql_error());
+$db = mysql_connect("localhost", "root", "") or die(mysql_error());
+
+mysql_select_db('mealshake', $db);
