@@ -16,6 +16,9 @@ if ($action=='login'){
 		$_SESSION['log']==1;
 	}else{
 		// notify the user that it's an illegal action
+// 		$result = userstate::login($_POST['username'],$_POST['password']);
+// 		$_SESSION['user']=$result;
+// 		$_SESSION['log']==1;
 	}
 }elseif ($action=='signup'){
 	if ($_SESSION['log']==0){
@@ -24,9 +27,12 @@ if ($action=='login'){
 			$_SESSION['user'] = $result;
 			$_SESSION['log']==1;
 		}else{
+			
 		}
 	}else{
 		// notify the user that it's an illegal action
+// 		$_SESSION['user'] = $result;
+// 		$_SESSION['log']==1;
 	}
 }elseif ($action=='logout'){
 	if ($_SESSION['log']==1){
@@ -35,7 +41,13 @@ if ($action=='login'){
 		unset($_SESSION['user']);
 	}else{
 		// notify the user that it's an illegal action
+// 		userstate::logout($_SESSION['user']);
+// 		$_SESSION['log']=0;
+// 		unset($_SESSION['user']);
 	}
+}elseif ($action=='init'){
+	$initres = userstate::makeInitResponse($_SESSION['user']);
+	responder::respondJson($initres);
 }elseif ($action=='editpref'){
 	preferences::editPreferences($_SESSION['user'], $_POST);
 }elseif ($action=='getpref'){
@@ -44,8 +56,11 @@ if ($action=='login'){
 	if ($_SESSION['log']==1){
 		preferences::editPreferences($_SESSION['user'], $_POST);
 		matcher::startShaking($_SESSION['user']);
+		matcher::getResult($_SESSION['user']);
 	}else{
 		// notify the user that it's an illegal action
+		preferences::editPreferences($_SESSION['user'], $_POST);
+		matcher::startShaking($_SESSION['user']);
 	}
 }elseif ($action=='endmatch'){
 	matcher::stopShaking($_SESSION['user']);

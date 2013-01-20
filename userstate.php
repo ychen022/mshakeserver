@@ -4,13 +4,13 @@ require_once 'responder.php';
 
 class userstate{
 	public static function login($un, $pw){
-		require("db.php");
+		require_once("db.php");
 		$query = "SELECT * FROM users WHERE username='" . mysql_real_escape_string($un) . "'";
 		$result = mysql_query($query, $db) or die(mysql_error());
 		$row = mysql_fetch_assoc($result);
 		if ($pw == $row["password"]) {
-			//responder::respondSimple("login_success");   //TODO change to fit need
-			responder::respondJson(makeLoginResponse($row['user_id']));
+			responder::respondSimple("login_success");  
+			//responder::respondJson(makeLoginResponse($row['user_id']));
 			return $row["user_id"];
 		}
 		else {
@@ -19,10 +19,10 @@ class userstate{
 		}
 	}
 	
-	public static function makeLoginResponse($userid){
-		require("db.php");
+	public static function makeInitResponse($userid){
+		require_once("db.php");
 		$responseArray = array();
-		$query = "SELECT * FROM preferences WHERE user_id='".$userid."'";
+		$query = "SELECT * FROM preferences WHERE user_id=".$userid."";
 		$result = mysql_query($query, $db) or die(mysql_error());
 		$row = mysql_fetch_assoc($result);
 	
@@ -40,7 +40,7 @@ class userstate{
 		$responseArray['pricemax'] = $row['price_max'];
 		$responseArray['pricemin'] = $row['price_min'];
 		
-		$query2 = "SELECT * FROM preferences WHERE user_id='".$userid."'";
+		$query2 = "SELECT * FROM foodtype WHERE user_id=".$userid."";
 		$result2 = mysql_query($query2, $db) or die(mysql_error());
 		$row2 = mysql_fetch_assoc($result2);
 		$responseTypeArray = array();
@@ -74,7 +74,7 @@ class userstate{
 		$state = $request['state'];
 		$zipcode = $request['zipcode'];
 		
-		require("db.php");
+		require_once("db.php");
 		$query1 = "INSERT INTO users (username, password) VALUES ('".mysql_real_escape_string($un)."','".mysql_real_escape_string($pw)."')";
 		$result1 = mysql_query($query1, $db) or die(mysql_error());
 		if (!$result1){
@@ -107,7 +107,7 @@ class userstate{
 	}
 	
 	public static function logout($userid){
-		require("matcher.php");
+		require_once("matcher.php");
 		matcher::stopShaking($userid);
 		responder::respondSimple("logout_success");
 	}

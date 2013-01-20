@@ -9,3 +9,4 @@ class responder{
 		echo json_encode($messageArray);
 	}
 }
+?>

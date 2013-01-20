@@ -2,10 +2,10 @@
 
 class preferences{
 	public static function editPreferences($userid, $request){
-		require('db.php');
+		require_once("db.php");
 		
 		// Pretranslate data for storage
-		$gsize = ($request['groupsize']==2 ? 0 : 1);
+		$gsize = ($request['number']==2 ? 0 : 1);
 		
 		if ($request['address']!=""){
 			$latlng = preferences::addressToLatLng($request['address'], $request['city'],
@@ -18,23 +18,23 @@ class preferences{
 		
 		// Update row contents in preferences table
 		$query1 = "UPDATE preferences SET address='".$request['address']."', city='".
-				$request['city']."., state='".$request['state']."', zipcode='".
-				$request['zipcode']."', distance='".$distance."', groupsize='".
-				$gsize."', gender='".strtolower($request['gender'])."', price_min='".
-				$request['pricemin']."', price_max='".$request['pricemax']."', latitude='".
-				$latlng['lat']."', longitude='".$latlng['lng']."' WHERE user_id=".
+				$request['city']."', state='".$request['state']."', zipcode=".
+				$request['zipcode'].", distance=".$distance.", groupsize=".
+				$gsize.", gender='".strtolower($request['gender'])."', price_min=".
+				$request['pricemin'].", price_max=".$request['pricemax'].", latitude=".
+				$latlng['lat'].", longitude=".$latlng['lng']." WHERE user_id=".
 				$userid;
 		$result1 = mysql_query($query1, $db) or die(mysql_error());;
 		
 		// Update row contents in foodtype table
 		$type = $request['type'];
-		$query2 = "UPDATE foodtype SET cuisine_1='".$type['cuisine_1']."', cuisine_2='".
-				$type['cuisine_2']."', cuisine_3='".$type['cuisine_3']."', cuisine_4='".
-				$type['cuisine_4']."', cuisine_5='".$type['cuisine_5']."', cuisine_6='".
-				$type['cuisine_6']."', cuisine_7='".$type['cuisine_7']."', cuisine_8='".
-				$type['cuisine_8']."', cuisine_9='".$type['cuisine_9']."', cuisine_10='".
-				$type['cuisine_10']."', cuisine_11='".$type['cuisine_11']."', cuisine_12='".
-				$type['cuisine_12']."' WHERE user_id=".$userid;
+		$query2 = "UPDATE foodtype SET cuisine_1=".$type['cuisine_1'].", cuisine_2=".
+				$type['cuisine_2'].", cuisine_3=".$type['cuisine_3'].", cuisine_4=".
+				$type['cuisine_4'].", cuisine_5=".$type['cuisine_5'].", cuisine_6=".
+				$type['cuisine_6'].", cuisine_7=".$type['cuisine_7'].", cuisine_8=".
+				$type['cuisine_8'].", cuisine_9=".$type['cuisine_9'].", cuisine_10=".
+				$type['cuisine_10'].", cuisine_11=".$type['cuisine_11'].", cuisine_12=".
+				$type['cuisine_12']." WHERE user_id=".$userid;
 		$result2 = mysql_query($query2, $db) or die(mysql_error());;
 		
 	}

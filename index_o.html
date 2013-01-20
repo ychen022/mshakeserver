@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>
+            Index Page
+        </title>
+        <link rel="stylesheet" type="text/css" href="HomepageMockupCSS.css" />
+        <script src="http://code.jquery.com/jquery-1.9.0.min.js"></script>
+        <script src="HomepageJavaScript.js"></script>
+    </head>
+    <body>
+        <div id="doc">
+            <div id="heading">
+                <img id="logo" src="Logo.png" height="95px" />
+                <div id="welcome"><p>Welcome to MEALShake.com</p></div>
+                <div id="login">
+                    <div id="ins">
+                        <h4>Username:</h4>
+                        <h4>Password:</h4>
+                    </div>
+                    <div id="comp">
+                        <input type="textarea" value='' id='username' /><br />
+                        <input type="password" value='' id='password'  /><br />
+                    </div>
+                    <input id ="button" type="button" value="Log In" align="right"/>
+                </div>
+            </div>
+            <div id="bardiv">
+                <ul id="bar">
+                    <li><a href="#profile">Profile</a></li>
+                    <li><a href="#history">History</a></li>
+                    <li><a href="#restaurant">Restaurant</a></li>
+                    <li><a href="#about">About</a></li>
+                </ul>
+            </div>
+            <div id="main">
+                <div id="signup">
+                    <h2>Sign Up</h2>
+                    <div>
+                        <h4>Part A. Log In Info</h4>
+                        <div>
+                            <div id="a">
+                                <p>Username:</p>
+                                <p>Password:</p>
+                                <p>Confirm Password:</p>
+                            </div>
+                            <div id="a">
+                                <input class="tb" type="textarea" id='signuser'/><br />
+                                <input class="tb" type="password" id='signpass'/><br />
+                                <input class="tb" type="password" id='conpass'/><br />
+                            </div>
+                        </div>
+                        <h4>Part B. Basic Info</h4>
+                        <div>
+                            <div id="a">
+                                <p>First Name:</p>
+                                <p>Last Name:</p>
+                                <p>Gender:</p>
+                                <p>E-mail:</p>
+                                <p>Phone Number:</p>
+                                <p>Address:</p>
+                                <p>City:</p>
+                                <p>State:</p>
+                                <p>Zip Code:</p>
+                            </div>
+                            <div id="b">
+                                <input class="tb" type="textarea" id='first'/><br />
+                                <input class="tb" type="textarea" id='last'/><br />
+                                <input class="rb" type="radio" name="gender" id='male'>Male&nbsp</input>
+                                <input class="rb" type="radio" name="gender" id='female'>Female</input><br />
+                                <input class="tb" type="email" id='email'/><br />
+                                <input class="tb" type="tel" id='phone'/><br />
+                                <input class="tb" type="textarea" id='address'/><br />
+                                <input class="tb" type="textarea" id='city'/><br />
+                                <input class="tb" type="textarea" id='state'/><br />
+                                <input class="tb" type="textarea" id='zip'/><br />
+                            </div>
+                        </div>
+                    </div>
+                <input id="submit" type="submit" value="Submit"/>
+                </div>
+                <div id="info">
+                    <h2>Information</h2>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

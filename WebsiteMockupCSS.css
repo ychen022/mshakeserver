@@ -1,0 +1,170 @@
+body
+{
+    margin:0px;
+    background-color:#ffffff;
+    font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+}
+
+#heading
+{
+    position:fixed;
+    z-index:10;
+    top:0;
+    width: 100%;
+    height: 60px;
+    padding:0px;
+    background-color:#e96151;
+    box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.3);
+    border-bottom: 1px solid #cf5648;
+}
+#heading-content{
+    width:940px;
+    margin:0px auto;
+    height:inherit;
+}
+#logo
+{
+    float: left;
+    height:60px;
+    width:160px;
+    margin-right:60px;
+    border:1px solid rgb(248,248,248);
+}
+
+#bardiv
+{
+    float:left;
+    height:60px;
+    margin:0px;
+    padding:0px;
+}
+
+#bar
+{
+    list-style-type: none;
+    height:inherit;
+    margin: 0;
+    padding:0px;
+    overflow: hidden;
+    font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+    font-size: 20px;
+}
+
+#bar li
+{
+    width: 110px;
+    height:60px;
+    float: left;
+}
+
+#bar a:link, #bar a:visited
+{
+    display: block;
+    padding-top:20px;
+    padding-bottom:20px;
+    
+    color: #ecece7;
+    line-height:20px;
+    /*background-color: rgb(151, 85, 36);*/
+    text-align: center;
+    text-decoration: none;
+}
+
+#bar a:hover, #bar a:active
+{
+    color:#eda299;
+   background-color:rgb(244,244,244);
+}
+#nav_dropdown{
+    width:160px;
+    float:right;
+}
+#useraccount{
+    height:53px;
+    margin-top:6px;
+    width:160px;
+}
+#userpic{
+    width:36px;
+    height:36px;
+    padding:6px;
+    float:left;
+}
+
+#account{
+    float:right;
+    width:100px;
+    height:20px;
+    text-align:right;
+    padding: 30px 0px 3px 10px;
+    color:#ffffff;
+    font-size:10px;
+    font-weight:bold;
+}
+.name{
+    width:auto;
+    float:right;
+}
+.toggle_symbol{
+    float:right;
+    width:12px;
+    height:12px;
+    margin:1px 5px 7px 3px;
+    text-align:center;
+    
+}
+.toggle_symbol_up, .toggle_symbol_down{
+    
+    height: 12px;
+    width:12px;
+    
+    font-size:12px;
+}
+.toggle_symbol_up{
+    display:none;
+}
+
+
+#dropdown_list{
+    list-style-type: none;
+    width:160px;
+    padding:0px;
+    margin:0px;
+}
+
+.dropdown_item{
+    height:30px;
+}
+
+.dropdown_item a{
+    text-decoration:none;
+    text-align:right;
+    display:inline-block;
+    width:150px;
+    padding-right:10px;
+    color:#c8c8c8;
+}
+#notification{
+    height:60px;
+    width:100px;
+    float:right;
+}
+
+#invit{
+    color:white;
+    font-size: 18px;
+    width:inherit;
+    padding-top:30px;
+    text-align:right;
+}
+#content{
+    width:940px;
+    margin:0px auto;
+    margin-top:60px;
+    background-color:white;
+}
+
+#main div{
+    float:left;
+}
+
