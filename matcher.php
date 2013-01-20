@@ -13,7 +13,17 @@ class matcher{
 
 	
 	public static function startShaking($userid){
-		
+		require('db.php');
+		grouper::startGroup($userid);
+	}
+	
+	public static function getResult($userid){
+		require('db.php');
+		$query0 = "SELECT group_id FROM groups WHERE is_active=1";
+		$result0 = mysql_query($query0, $db) or die(mysql_error());
+		while ($row=mysql_fetch_array($result0)){
+			
+		}
 	}
 	
 	public static function stopShaking($userid){

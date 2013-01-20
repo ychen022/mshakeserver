@@ -17,7 +17,7 @@ if ($action=='login'){
 	}else{
 		// notify the user that it's an illegal action
 	}
-}else if ($action=='signup'){
+}elseif ($action=='signup'){
 	if ($_SESSION['log']==0){
 		$result = userstate::signup($_POST);
 		if ($result!=-1 && $result!=0){ // "sign up failed"
@@ -28,7 +28,7 @@ if ($action=='login'){
 	}else{
 		// notify the user that it's an illegal action
 	}
-}else if ($action=='logout'){
+}elseif ($action=='logout'){
 	if ($_SESSION['log']==1){
 		userstate::logout($_SESSION['user']);
 		$_SESSION['log']=0;
@@ -36,16 +36,23 @@ if ($action=='login'){
 	}else{
 		// notify the user that it's an illegal action
 	}
-}else if ($action=='editpref'){
+}elseif ($action=='editpref'){
 	preferences::editPreferences($_SESSION['user'], $_POST);
-}else if ($action=='getpref'){
+}elseif ($action=='getpref'){
 	preferences::getPreferences($_SESSION['user']);
-}else if ($action=='startmatch'){
-	matcher::startShaking($_SESSION['user']);
-}else if ($action=='endmatch'){
+}elseif ($action=='startmatch'){
+	if ($_SESSION['log']==1){
+		preferences::editPreferences($_SESSION['user'], $_POST);
+		matcher::startShaking($_SESSION['user']);
+	}else{
+		// notify the user that it's an illegal action
+	}
+}elseif ($action=='endmatch'){
 	matcher::stopShaking($_SESSION['user']);
-}else if ($action=='viewuser'){
+}elseif ($action=='get'){
+	matcher::getResult($_SESSION['user']);
+}elseif ($action=='viewuser'){
 	
-}else if ($action=='sendrequest'){
+}elseif ($action=='sendrequest'){
 	
 }
