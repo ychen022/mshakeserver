@@ -61,6 +61,18 @@ class userstate{
 		return $responseArray;
 	}
 	
+	public static function checkUserName($username){
+		require_once('db.php');
+		$query = "SELECT * FROM users WHERE username='".$username."'";
+		$result = mysql_query($query, $db);
+		$numcheck = mysql_num_rows($result);
+		if ($numcheck==0){
+			responder::respondSimple("good");
+		}else{
+			responder::respondSimple("bad");
+		}
+	}
+	
 	public static function signup($request){
 		$un = $request['username'];
 		$pw = $request['password'];
@@ -97,18 +109,18 @@ class userstate{
 			$result3 = mysql_query($query3, $db) or die(mysql_error());
 			
 			if (!$result2){
-				responder::respondSimple("Error inserting into database");
+				responder::respondSimple("signup_failure");
 				return -1;
 			}else{
-				//responder::respondSimple("signup_success");
-				return userstate::login($un, $pw);
+				responder::respondSimple("signup_success");
+				//return userstate::login($un, $pw);
 			}
 		}
 	}
 	
 	public static function logout($userid){
 		require_once("matcher.php");
-		matcher::stopShaking($userid);
+		//matcher::stopShaking($userid);
 		responder::respondSimple("logout_success");
 	}
 }

@@ -1,0 +1,109 @@
+#signup{
+    position:fixed;
+    left:443px;
+    z-index:10;
+    bottom:20px;
+    background-color:#fff;
+    width:480px;
+    padding:10px;
+    height:500px;
+    border:1px solid #c8c8c8;
+    font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+    margin:auto;
+    box-shadow: 0 1px 2px #eae9e9;
+    border-color: #d5d4d4;
+}
+#signup h2{
+    padding-left:10px;
+    display:inline-block;
+    width:200px;
+    color:#383838;
+}
+#signuptitle{
+    height:70px;
+}
+#signup #incancel{
+    position:relative;
+    top:-40px;
+    right:-20px;
+    display:inline-block;
+    font-size:50px;
+    font-family: "Titillium Web", serif;
+    height:40px;
+    font-weight:bold;
+    width:40px;
+    float:right;
+    color:#eee;
+}
+
+#signup #incancel:hover{
+    color: #aaa;
+}
+.signup_items .tb, .signup_items select{
+    width:210px;
+    height:37px;
+    margin:0px;
+    padding:0px;
+    border-radius:3px;
+    font-size:16px;
+    border: 1px solid #8fb42c;
+    box-shadow: rgba(0, 0, 0, 0.2) 0px 1px 2px 0px inset;
+    color:#c8c8c8;
+    padding-left:10px;
+}
+
+.signup_items select{
+    margin-left: -2px;
+    background:transparant;
+    height:37px;
+    width:220px;
+}
+
+.signup_items select option{
+    color: #b8b8b8;
+}
+.signup_items .ingender{
+    height:37px;
+    width:100px;
+    float:left;
+}
+
+.signup_list{
+    margin:auto;
+}
+.signup_items{
+    float:left;
+    width: 220px;
+    margin:0px 10px 10px 10px;
+}
+.signup_items label{
+    font-size:12px;
+    line-height:12px;
+    display:block;
+    height:12px;
+    padding-top:3px;
+    width:210px;
+    padding-left:11px;
+    font-weight:bold;
+    color:rgb(192,30,41);
+}
+
+#insubmit{
+    display:inline-block;
+    background-color:#8fb42c;
+    color:rgb(255,255,255);
+    font-size:16px;
+    text-align:center;
+    padding-top:10px;
+    height:27px;
+    width:220px;
+    border:1px solid #7B9A25;
+    overflow:hidden;
+    margin-left:10px;
+    box-shadow: #5C741C 0px 1px 2px 0px inset;
+}
+
+#insubmit:hover{
+    background-color:#7B9A25;
+    
+}

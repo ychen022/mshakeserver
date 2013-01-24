@@ -1,0 +1,119 @@
+body{
+    background-color:/*#99E9E1*/#AEE9E6;
+}
+
+#header_1{
+    font-size:72px;
+    color:#ffffff;
+    text-align:center;
+    font-family: 'Bevan', cursive;
+}
+#incontent{
+    padding-top:200px;
+    width:940px;
+    margin:auto;
+   
+}
+#header_2{
+    font-size:36px;
+    color:#111111;
+    text-align:center;
+    font-family: 'Arapey', serif;
+}
+
+#heading
+{
+    position:fixed;
+    z-index:10;
+    top:0;
+    left:0;
+    width: 100%;
+    height: 60px;
+    padding:0px;
+    background-color:#e96151;
+    box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.3);
+    border-bottom: 1px solid #cf5648;
+}
+#heading-content{
+    width:940px;
+    margin:0px auto;
+    height:inherit;
+}
+#logo
+{
+    float: left;
+    height:60px;
+    width:160px;
+    margin-right:60px;
+    border:1px solid rgb(248,248,248);
+}
+
+
+
+#login_box{
+    height:40px;
+    width:480px;
+    margin:auto;
+    margin-top:80px;
+    
+}
+.login_input{
+    float:left;
+    font-size:16px;
+    padding:6px;
+}
+
+.login_input input{
+    width:160px;
+    height:30px;
+    margin:0 10px 0 10px;
+    padding:0px;
+    border-radius:3px;
+    font-size:16px;
+    border: 1px solid #7EA9A7;
+    box-shadow: rgba(0, 0, 0, 0.2) 0px 1px 2px 0px inset;
+    color:#c8c8c8;
+    padding-left:10px;
+}
+
+#loginbutton{
+    border-radius: 20px;
+    font-size: 15px;
+    font-weight: bold;
+    color: #506e6b;
+    text-transform: none;
+    text-decoration: none;
+    text-shadow: -1px 1px 0px #f3faf8;
+    font-family:"Trebuchet MS", Arial, Helvetica, sans-serif;
+    padding: 5px 0px 5px 0px;
+    text-align:center;
+    margin-left: 10px;
+    margin-top:5px;
+    float: right;
+    overflow:hidden;
+    box-shadow: 0px 1px 2px #8ab3ad, inset 0px 1px 0px #fafefd;
+    width:60px;
+    height:20px;
+    
+    background: #e2f6f3; /* Old browsers */
+	background: -moz-linear-gradient(top,  #e2f6f3 0%, #c8ebe1 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#e2f6f3), color-stop(100%,#c8ebe1)); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top,  #e2f6f3 0%,#c8ebe1 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top,  #e2f6f3 0%,#c8ebe1 100%); /* Opera 11.10+ */
+	background: -ms-linear-gradient(top,  #e2f6f3 0%,#c8ebe1 100%); /* IE10+ */
+	background: linear-gradient(top,  #e2f6f3 0%,#c8ebe1 100%); /* W3C */
+}
+
+#signupbox{
+    width:auto;
+    float:right;
+    margin:auto;
+}
+
+#signupbutton{
+    color:rgb(192,30,41);
+}
+#signupbutton:hover{
+    color:#A61A24;
+    text-decoration:underline;
+}

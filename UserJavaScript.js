@@ -80,7 +80,7 @@ $('document').ready(function(){
     
     function logOut(response){
         if(response == "logout_success"){window.location.replace('index.html');}
-        else{alert("Log Out Failed!")}
+        else{alert(response)}
     }
     
     $('#shake').click(function(){
@@ -97,7 +97,7 @@ $('document').ready(function(){
         req['distance'] = $('#distance').val();
         if(!checkNumberReg(req['distance'])){altext += 'You must enter a number in the distance textbox\n'}
         req['type'] = checkType();
-        req['gender'] = checkPeople();
+        req['people'] = checkPeople();
         req['number'] = checkNumber();
         req['pricemin'] = $('#pricemin').val();
         req['pricemax'] = $('#pricemax').val();
@@ -157,15 +157,15 @@ $('document').ready(function(){
     }
     
     function checkPeople(){
-        if($('#people_1').is(':checked')){return "male";}
-        else if($('#people_2').is(':checked')){return "female";}
-        else if($('#people_3').is(':checked')){return "any";}
+        if($('#people_1').is(':checked')){return $('#people_1').next().html();}
+        else if($('#people_2').is(':checked')){return $('#people_2').next().html();}
+        else if($('#people_3').is(':checked')){return $('#people_3').next().html();}
         else {return null;}
     }
     
     function checkNumber(){
-        if($('#number_1').is(':checked')){return 2;}
-        else if($('#number_2').is(':checked')){return 0;}
+        if($('#number_1').is(':checked')){return $('#number_1').next().html();}
+        else if($('#number_2').is(':checked')){return $('#number_2').next().html();}
         else {return null;}
     }
     

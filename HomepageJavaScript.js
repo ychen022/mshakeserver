@@ -55,16 +55,32 @@ $(document).ready(function(){
         var city = $('#incity').val();
         var state = $('#inState').val();
         var zip = $('#inzip').val();
-        var altext = "";
-        if (un.length < 6 || un.length > 15){altext += "Your username must be between 6 and 15 characters!\n";}
-        if(pw.length < 6 || pw.length > 15){altext += "Your password must be between 6 and 15 characters!\n";}
-        if(pw != cpw){altext += "Your password does not match your confirm password!\n";}
-        if(first == ""){altext += "Your must enter your first name!\n";}
-        if(last == ""){altext += "Your must enter your last name!\n";}
+        var alt = false;
+        if (un.length < 6 || un.length > 15){
+            $('#signuser').next().html("Username must be 6-15 characters");
+            alt = true;}
+        else{$('#signuser').next().html("")}
+        if(pw.length < 6 || pw.length > 15){
+            $('#signpass').next().html("Password must be 6-15 characters!")
+            alt = true;}
+        else{$('#signpass').next().html("")}
+        if(pw != cpw){
+            $('#conpass').next().html("Password does not match");
+            alt = true;}
+        else{$('#conpass').next().html("")}
+        if(first == ""){
+            $('#infirst').next().html("Must enter firstname!");
+            alt = true;}
+        else{$('#infirst').next().html("")}
+        if(last == ""){
+            $('#inlast').next().html("Must enter lastname!");
+            alt = true;}
+        else{$('#inlast').next().html("")}
         if(!$('#inmale').is(':checked') && !$('#infemale').is(':checked')){
-            altext += "Your must select your gender!";}
-        console.log(altext);
-        if(altext == ""){
+            $('#infemale').next().html("Must choose a gender!");
+            alt = true;}
+        else{$('#infemale').next().html("")}
+        if(!alt){
             req['username'] = un;
             req['password'] = pw;
             req['firstname'] = first;
@@ -88,8 +104,8 @@ $(document).ready(function(){
                 alert(jqXHR.responseText);},
             })
         }else{
-            alert(altext);
             resetpass();
+            alt=true;
         }
     })
     
@@ -101,7 +117,9 @@ $(document).ready(function(){
     function signlog(response){
         if(response == "login_success"){
             updateHTML();
-        }
+        }else{
+			alert(response);
+		}
     }
     
     function updateHTML(){

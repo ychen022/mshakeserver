@@ -59,7 +59,7 @@ box-shadow: 1px 1px 2px 0 #d0d0d0;
     margin-right:20px;
     width:218px;
 }
-.group_info .distance, .group_info .food_type, .group_info .price_range{
+.group_info .distance, .group_info .food_type, .group_info .price_range, .group_info .capacity{
     padding-left:0px;
     line-height:20px;
     font-size:12px;
