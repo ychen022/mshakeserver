@@ -10,25 +10,46 @@ class matcher{
 		grouper::startGroup($userid);
 	}
 	
+	/**
+	 * Function to be called when receiving a "get" request.
+	 * Finds the user's group, checks if the group has any special activity going on,
+	 * and then finds matches based on the preferences of the group.
+	 * @param unknown_type $userid
+	 */
 	public static function getResult($userid){
 		require_once('db.php');
-		$query0 = "SELECT group_id FROM groups WHERE is_active=1";
-		$result0 = mysql_query($query0, $db) or die(mysql_error());
-		if (mysql_num_rows($result0)==0){
-			
-		}
 		
+		// -------Get the user's group------
 		$query1 = "SELECT current_group FROM preferences WHERE user_id=".$userid;
 		$result1 = mysql_query($query1, $db) or die(mysql_error());
 		$grouprow = mysql_fetch_array($result1);
 		$owngroup = $grouprow['current_group'];
 		
+		// -------Check the group's voting info------
+		
+		$voteCheckQuery = "SELECT voting_invite, voting_join, invite_user_id, join_user_id FROM groups WHERE group_id=".$owngroup;
+		$vcResult = mysql_query($voteCheckQuery, $db) or die(mysql_error());
+		$vcRow = mysql_fetch_assoc($vcResult);
+		if ($vcRow){
+			if ($vcRow['voting_invite']==1){
+				grouper::distributeVote($owngroup, 0, $vcRow['invite_user_id']);
+			}
+			if ($vcRow['voting_join']==1){
+				grouper::distributeVote($owngroup, 1, $vcRow['join_user_id']);
+			}
+		}
+		
+		// -------Group matching portion------
+		
+		//$query0 = "SELECT group_id FROM groups WHERE is_active=1";
+		$query0 = "SELECT group_id FROM groups";
+		$result0 = mysql_query($query0, $db) or die(mysql_error());
 		
 		$matchedList = array();
-		while ($row=mysql_fetch_array($result0)){
+		while ($row=mysql_fetch_assoc($result0)){
 			if ($row['group_id']==$owngroup){
 				continue;
-			}elseif (matcher::groupMatch($userid, $row['group_id'])){
+			}elseif (matcher::groupMatchGroup($owngroup, $row['group_id'])){
 				$matchedList[] = $row['group_id'];
 			}
 		}
@@ -36,7 +57,46 @@ class matcher{
 		
 	}
 	
-	public static function makeGetResponse($groupArray){
+	/**
+	 * Returns an array of matching groups given a group id. Used to get a quick update.
+	 * @param unknown_type $groupid
+	 */
+	public static function getMatchedGroups($groupid){
+		$query0 = "SELECT group_id FROM groups";
+		$result0 = mysql_query($query0, $db) or die(mysql_error());
+		
+		$matchedList = array();
+		while ($row=mysql_fetch_assoc($result0)){
+			if ($row['group_id']==$groupid){
+				continue;
+			}elseif (matcher::groupMatchGroup($owngroup, $row['group_id'])){
+				$matchedList[] = $row['group_id'];
+			}
+		}
+		return $matchedList;
+	}
+	
+	/**
+	 * Checks if two groups are "compatible"--that is, any group member
+	 * from any side can be matched with anyone on the other side.
+	 */
+	public static function groupMatchGroup($group1id, $group2id){
+		$getMemberQuery = "SELECT user_id FROM group_members WHERE group_id=".$group1id;
+		$gmResult = mysql_query($getMemberQuery, $db) or die(mysql_error());
+		while ($gmRow = mysql_fetch_assoc($gmResult)){
+			if (!groupMatch($gmRow, $$group2id)){
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	
+	/**
+	 * Forms the array that will be echoed to the frontend.
+	 * @param unknown_type $groupArray
+	 */
+	public static function makeGetResponse($notifArray, $groupArray){
 		if (count($groupArray)==0){
 			$toplayer = array();
 			$notification = array();
@@ -46,6 +106,11 @@ class matcher{
 		}
 		$toplayer = array();
 		$notification = array();
+		
+		
+		
+		
+		
 		$match = array();
 		foreach ($groupArray as $groupid){
 			$overtop = array();
@@ -101,11 +166,15 @@ class matcher{
 		
 		$toplayer['notification'] = $notification;
 		$toplayer['match'] = $match;
-		responder::respondJson($toplayer);
-		
-		
+		responder::respondJson($toplayer);	
 	}
 	
+	
+	/**
+	 * Function to be called when the user stops matching.
+	 * Removes the user from any group it belongs to, and removes the group if necessary
+	 * @param unknown_type $userid
+	 */
 	public static function stopShaking($userid){
 		
 	}
@@ -256,6 +325,11 @@ class matcher{
 		}
 	}
 	
+	/**
+	 * Takes a row of data and generates an array of selected cuisine list for response;
+	 * @param unknown_type $row
+	 * @param unknown_type $size
+	 */
 	public static function getCuisineList($row, $size){
 		$clist = array();
 		if ($row[cuisine_1]==1){

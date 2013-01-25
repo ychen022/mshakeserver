@@ -10,6 +10,10 @@ if (!isset($_SESSION['log'])){
 	$_SESSION['log'] = 0;  //0 for not logged in, 1 for logged in
 }
 
+if (!isset($_SESSION['shaking'])){
+	$_SESSION['shaking'] = 0;  //0 for not logged in, 1 for logged in
+}
+
 if (isset($_POST['action'])){
 	$action = $_POST["action"];
 	if ($action=='login'){
@@ -42,6 +46,9 @@ if (isset($_POST['action'])){
 		}
 	}elseif ($action=='logout'){
 		if ($_SESSION['log']==1){
+			if ($_SESSION['shaking']==1){
+				matcher::stopShaking($_SESSION['user']);
+			}
 			userstate::logout($_SESSION['user']);
 			$_SESSION['log']=0;
 			unset($_SESSION['user']);
@@ -59,19 +66,23 @@ if (isset($_POST['action'])){
 	}elseif ($action=='getpref'){
 		preferences::getPreferences($_SESSION['user']);
 	}elseif ($action=='startmatch'){
-		if ($_SESSION['log']==1){
+		if ($_SESSION['log']==1 && $_SESSION['shaking']==0){
+			$_SESSION['shaking']=1;
 			preferences::editPreferences($_SESSION['user'], $_POST);
 			matcher::startShaking($_SESSION['user']);
 			matcher::getResult($_SESSION['user']);
 		}else{
 			// notify the user that it's an illegal action
-			preferences::editPreferences($_SESSION['user'], $_POST);
-			matcher::startShaking($_SESSION['user']);
+// 			preferences::editPreferences($_SESSION['user'], $_POST);
+// 			matcher::startShaking($_SESSION['user']);
 		}
-	}elseif ($action=='endmatch'){
+	}elseif ($action=='endmatch' && $_SESSION['shaking']==1){
+		$_SESSION['shaking']=0;
 		matcher::stopShaking($_SESSION['user']);
-	}elseif ($action=='get'){
+	}elseif ($action=='get' && $_SESSION['shaking']==1){
 		matcher::getResult($_SESSION['user']);
+	}elseif ($action=='vote'){
+		
 	}elseif ($action=='viewuser'){
 		
 	}elseif ($action=='sendrequest'){
