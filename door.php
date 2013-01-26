@@ -87,6 +87,8 @@ if (isset($_POST['action'])){
 		
 	}elseif ($action=='sendrequest'){
 		
+	}elseif ($action=='getgroup'){
+		
 	}
 }
 ?>

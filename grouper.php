@@ -75,21 +75,53 @@ class grouper{
 	public static function mergeGroup($group1, $group2){
 		require_once ('db.php');
 		
-		// Update the preferences of the moved gorup's members
+		// ---Update the preferences of the moved gorup's members---
 		$getG1UserQuery = "SELECT user_id FROM group_members WHERE group_id=".$group1;
 		$g1uResult = mysql_query($getG1UserQuery, $db) or die(mysql_error());
 		$getG2UserQuery = "SELECT user_id FROM group_members WHERE group_id=".$group2;
 		$g2uResult = mysql_query($getG2UserQuery, $db) or die(mysql_error());
 		
-		// Merge the two groups' preferences
+		while ($g1row = mysql_fetch_assoc($g1uResult)){
+			$changeG1UserQuery = "UPDATE preferences SET current_group=".$group2." WHERE user_id=".$g1row['user_id'];
+			$c1uResult = mysql_query($changeG1UserQuery, $db) or die(mysql_error());
+			$changeG1MemberQuery = "UPDATE group_members SET group_id=".$group2." WHERE user_id=".$g1row['user_id'];
+			$c1mResult = mysql_query($changeG1MemberQuery, $db) or die(mysql_error());
+		}
+		
+		// ---Merge the two groups' preferences---
+		
 		$getG1PrefQuery = "SELECT * FROM groups WHERE group_id=".$group1;
 		$g1pResult = mysql_query($getG1PrefQuery, $db) or die(mysql_error());
 		$g1pRow = mysql_fetch_assoc($g1pResult);
 		$getG2PrefQuery = "SELECT * FROM groups WHERE group_id=".$group1;
 		$g2pResult = mysql_query($getG2PrefQuery, $db) or die(mysql_error());
 		$g2pRow = mysql_fetch_assoc($g2pResult);
+		// Merge cost options
+		$gpmax = min($g1pRow['price_max'],$g2pRow['price_max']);
+		$gpmin = max($g1pRow['price_min'],$g2pRow['price_min']);
+		// Merge cuisine options
+		$c1merge = (int)($g1pRow['cuisine_1'] && $g2pRow['cuisine_1']);
+		$c2merge = (int)($g1pRow['cuisine_2'] && $g2pRow['cuisine_2']);
+		$c3merge = (int)($g1pRow['cuisine_3'] && $g2pRow['cuisine_3']);
+		$c4merge = (int)($g1pRow['cuisine_4'] && $g2pRow['cuisine_4']);
+		$c5merge = (int)($g1pRow['cuisine_5'] && $g2pRow['cuisine_5']);
+		$c6merge = (int)($g1pRow['cuisine_6'] && $g2pRow['cuisine_6']);
+		$c7merge = (int)($g1pRow['cuisine_7'] && $g2pRow['cuisine_7']);
+		$c8merge = (int)($g1pRow['cuisine_8'] && $g2pRow['cuisine_8']);
+		$c9merge = (int)($g1pRow['cuisine_9'] && $g2pRow['cuisine_9']);
+		$c10merge = (int)($g1pRow['cuisine_10'] && $g2pRow['cuisine_10']);
+		$c11merge = (int)($g1pRow['cuisine_11'] && $g2pRow['cuisine_11']);
+		$c12merge = (int)($g1pRow['cuisine_12'] && $g2pRow['cuisine_12']);
+		// Query
+		$updateGroupQuery = "UPDATE groups SET cuisine_1=".$c1merge.",cuisine_2=".$c2merge.",cuisine_3=".$c3merge.",cuisine_4="
+		.$c4merge.",cuisine_5=".$c5merge.",cuisine_6=".$c6merge.",cuisine_7=".$c7merge.",cuisine_8=".$c8merge.",cuisine_9="
+		.$c9merge.",cuisine_10=".$c10merge.",cuisine_11=".$c11merge.",cuisine_12=".$c12merge.",price_max=".$gpmax.",price_max=".
+		$gpmin." WHERE group_id=".group2;
+		$ugResult = mysql_query($updateGroupQuery, $db) or die(mysql_error());
 		
-		
+		// ---Remove the old group---
+		$removeQuery = "DELETE FROM groups WHERE group_id=".$group1;
+		$remResult = mysql_query($removeQuery, $db) or die(mysql_error());
 		
 	}
 	
@@ -150,6 +182,7 @@ class grouper{
 				$n0['type'] = 'joinDecision';
 				$n0['decisionType'] = 'A';
 				$n0['group'] = $groupArray;
+				$n0['groupID'] = $hostgroupid;
 				$nArray[] = $n0;
 				matcher::makeGetResponse($nArray, matcher::getMatchedGroups($hostgroupid));
 			}else if ($cvRow['no_votes']/$cvRow['max_votes']>0.6){
@@ -158,6 +191,7 @@ class grouper{
 				$n0['type'] = 'joinDecision';
 				$n0['decisionType'] = 'D';
 				$n0['group'] = $groupArray;
+				$n0['groupID'] = $hostgroupid;
 				$nArray[] = $n0;
 				matcher::makeGetResponse($nArray, matcher::getMatchedGroups($reqgroupid));
 			}
@@ -254,14 +288,98 @@ class grouper{
 	}
 	
 	/**
-	 * Adjust group members' entries according to the ongoing vote so that they will get
-	 * the vote in the response to a get request
-	 * @param unknown_type $groupid
-	 * @param unknown_type $type 0 for invite, 1 for join
+	 * Create an array "notification" according to the parameters.
+	 * Types:
+	 * -inviteRequest: $groupid is the group being invited
+	 * -joinRequest: $groupid is the group being merged with
+	 * -inviteDecision: $groupid is the initiator's group
+	 * -joinDecision: $groupid is the group being merged with
+	 * @param int $groupid The group related with the action.
+	 * @param string $type 
 	 * @param unknown_type $target
 	 */
-	public static function distributeVote($groupid, $type, $target){
+	public static function makeVoteNotification($groupid, $type, $decision=null, $initiator=null){
+		$n0 = array();
+		$n0['groupID']=$groupid;
+		$n0['type']=$type;
+		$n0['decisionType']=$decision;
+		$n0['group']=grouper::makeMemberArray($groupid, false);
+		if ($initiator!=null){
+			$nameQuery = "SELECT user_id, first_name, last_name FROM profiles WHERE user_id=".$initiator;
+			$nmResult = mysql_query($nameQuery, $db) or die(mysql_error());
+			$nmRow = mysql_fetch_assoc($nmResult);
+			$memberArray = array();
+			$memberArray['id'] = $nmRow['user_id'];
+			$memberArray['firstname'] = $nmRow['first_name'];
+			$memberArray['lastname'] = $nmRow['last_name'];
+			$n0['initiator'] = $memberArray;
+		}
 		
+		return $n0;
+	}
+	
+	/**
+	 * Create an array [group] that will be returned to the frontend.
+	 * @param int $groupid
+	 */
+	public static function makeGroupArray($groupid){
+		$groupArray = array();
+		$groupQuery = "SELECT * FROM groups WHERE group_id=".$groupid;
+		$groupResult = mysql_query($groupQuery, $db) or die(mysql_error());
+		$gRow = mysql_fetch_assoc($groupResult);
+		$groupArray['id'] = $groupid;
+		$groupArray['foodtype'] = matcher::getCuisineList($gRow, 3);
+		$groupArray['pricemin'] = $gRow['price_min'];
+		$groupArray['pricemax'] = $gRow['price_max'];
+		$groupArray['avgdist'] = 10;  //TODO fill in average distance
+		$groupArray['capacity'] = (($gsrow['capacity']==2)?2:5);
+		
+		$numberQuery = "SELECT user_id FROM group_members WHERE group_id=".$hostgroupid;
+		$nqResult = mysql_query($numberQuery, $db) or die(mysql_error());
+		$numMember = mysql_num_rows($nqResult);
+		
+		$groupArray['nop'] = $numMember;
+		return $groupArray;
+		
+	}
+	
+	/**
+	 * Create an array [member] that will be returned to the frontend.
+	 * @param int $groupid
+	 * @param boolean $completeinfo
+	 */
+	public static function makeMemberArray($groupid, $completeinfo){
+		$membersArray = array();
+		$numberQuery = "SELECT * FROM group_members WHERE group_id=".$hostgroupid;
+		$nqResult = mysql_query($numberQuery, $db) or die(mysql_error());
+		$numMember = mysql_num_rows($nqResult);
+		
+		if ($completeinfo){
+			while ($nqRow = mysql_fetch_assoc($nqResult)){
+				$nameQuery = "SELECT (first_name, last_name, gender, photolink) FROM profiles WHERE user_id=".$memberid;
+				$nmResult = mysql_query($namequery, $db) or die(mysql_error());
+				$nmRow = mysql_fetch_array($nmResult);
+				$memberArray['id']=$memberid;
+				$memberArray['firstname'] = $iprow['first_name'];
+				$memberArray['lastname'] = $iprow['last_name'];
+				$memberArray['photolink'] = $iprow['photolink'];
+				$memberArray['gender'] = $iprow['gender'];
+				$membersArray[] = $memberArray;
+			}
+			
+		}else{
+			while ($nqRow = mysql_fetch_assoc($nqResult)){
+				$nameQuery = "SELECT user_id, first_name, last_name FROM profiles WHERE user_id=".$ruid;
+				$nmResult = mysql_query($nameQuery, $db) or die(mysql_error());
+				$nmRow = mysql_fetch_assoc($nmResult);
+				$memberArray = array();
+				$memberArray['id'] = $nmRow['user_id'];
+				$memberArray['firstname'] = $nmRow['first_name'];
+				$memberArray['lastname'] = $nmRow['last_name'];
+				$membersArray[] = $memberArray;
+			}
+		}
+		return $membersArray;
 	}
 
 }

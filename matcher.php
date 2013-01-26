@@ -27,15 +27,32 @@ class matcher{
 		
 		// -------Check the group's voting info------
 		
+		$notification=array();
+		
 		$voteCheckQuery = "SELECT voting_invite, voting_join, invite_user_id, join_user_id FROM groups WHERE group_id=".$owngroup;
 		$vcResult = mysql_query($voteCheckQuery, $db) or die(mysql_error());
 		$vcRow = mysql_fetch_assoc($vcResult);
 		if ($vcRow){
-			if ($vcRow['voting_invite']==1){
-				grouper::distributeVote($owngroup, 0, $vcRow['invite_user_id']);
+			if ($vcRow['voting_invite']==1){ // Create notification array containing a vote
+				$checkVoteStateQuery = "SELECT invite_vote FROM group_members WHERE user_id=".$userid;
+				$cvsResult = mysql_query($checkVoteStateQuery, $db) or die(mysql_error());
+				$cvsRow = mysql_fetch_assoc($cvsResult);
+				$voteStatus = $cvsRow['invite_vote'];
+				
+				if (voteStatus==1){
+					$inviteGroupQuery = "SELECT invite_group_id FROM groups WHERE group_id=".$owngroup;
+					$igResult = mysql_query($inviteGroupQuery, $db) or die(mysql_error());
+					$igRow = mysql_fetch_assoc($igResult);
+					$targetGroup = $igRow['invite_group_id'];
+					$notification = grouper::createVoteNotification($targetGroup, "inviteRequest", null, $userid);
+				}
+			}else if ($vcRow['voting_invite==2']){ // Create notification array containing a result
+				
 			}
-			if ($vcRow['voting_join']==1){
-				grouper::distributeVote($owngroup, 1, $vcRow['join_user_id']);
+			if ($vcRow['voting_join']==1){ // Create notification array containing a vote
+				grouper::createVoteNotification($owngroup, 1, $vcRow['join_user_id']);
+			}else if ($vcRow['voting_join']==2){ // Create notification array containing a result
+				
 			}
 		}
 		
@@ -53,7 +70,9 @@ class matcher{
 				$matchedList[] = $row['group_id'];
 			}
 		}
-		matcher::makeGetResponse($matchedList);
+		
+		$toplayer = matcher::makeGetResponse($notification, $matchedList);
+		return $toplayer;
 		
 	}
 	
@@ -94,9 +113,10 @@ class matcher{
 	
 	/**
 	 * Forms the array that will be echoed to the frontend.
-	 * @param unknown_type $groupArray
+	 * @param array $notification The already constructed notification
+	 * @param array $groupArray
 	 */
-	public static function makeGetResponse($notifArray, $groupArray){
+	public static function makeGetResponse($notification, $groupArray){
 		if (count($groupArray)==0){
 			$toplayer = array();
 			$notification = array();
@@ -105,68 +125,21 @@ class matcher{
 			$toplayer['match'] = $match;
 		}
 		$toplayer = array();
-		$notification = array();
-		
-		
-		
-		
-		
 		$match = array();
 		foreach ($groupArray as $groupid){
 			$overtop = array();
 			$group = array();
 			$member = array();
 			
-			// Get number of current groupmembers
-			$nopquery = "SELECT user_id FROM group_members WHERE group_id=".$groupid;
-			$nopresult = mysql_query($nopquery) or die(mysql_error());
-			$nop = mysql_num_rows($groupresult);
-			// Get and fill in group info
-			$gsquery = "SELECT * FROM groups WHERE group_id=".$groupid;
-			$gsresult = mysql_query($gsquery) or die(mysql_error());
-			$gsrow = mysql_fetch_array($gsresult);
-			$pricemin = $gsrow['price_min'];
-			$pricemax = $gsrow['price_max'];
-			$avgdist = 10;  //TODO: implement average distance calculation
-			$capacity = (($gsrow['capacity']==2)?2:5);
-			$foodtype = matcher::getCuisineList($gsrow, 3);
-			$group['nop'] = $nop;
-			$group['pricemin'] = $pricemin;
-			$group['pricemax'] = $pricemax;
-			$group['avgdist'] = $avgdist;
-			$group['capacity'] = $capacity;
-			$group['foodtype'] = $foodtype;
+			$overtop['group'] = grouper::makeGroupArray($groupid);
+			$overtop['member'] = grouper::makeMemberArray($groupid, true);
 			
-			$overtop['group'] = $group;
-			
-			
-			// Get info of each groupmember
-			while ($memberrow = mysql_fetch_array($nopresult)){
-				$memberarray = array();
-				$memberid = $memberrow['user_id'];
-				$ipquery = "SELECT (first_name, last_name, gender, photolink) FROM profiles WHERE user_id=".$memberid;
-				$ipresult = mysql_query($ipquery) or die(mysql_error());
-				$iprow = mysql_fetch_array($ipresult);
-				$memberarray['id']=$memberid;
-				$memberarray['firstname'] = $iprow['first_name'];
-				$memberarray['lastname'] = $iprow['last_name'];
-				$memberarray['photolink'] = $iprow['photolink'];
-				$memberarray['gender'] = $iprow['gender'];
-				
-				$ftquery = "SELECT * FROM foodtype WHERE user_id=".$memberid;
-				$ftresult = mysql_query($ftquery) or die(mysql_error());
-				$ftrow = mysql_fetch_array($ftresult);
-				$pfoodtype = matcher::getCuisineList($ftrow, 12);
-				$memberarray['foodtype'] = $pfoodtype;
-				$member[] = $memberarray;
-				$overtop['member'] = $member;
-			}
 			$match[] = $overtop;
 		}
 		
 		$toplayer['notification'] = $notification;
 		$toplayer['match'] = $match;
-		responder::respondJson($toplayer);	
+		return $toplayer;
 	}
 	
 	
