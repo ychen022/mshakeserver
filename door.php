@@ -3,8 +3,10 @@ session_start();
 
 require_once 'userstate.php';
 require_once 'matcher.php';
+require_once 'grouper.php';
 require_once 'preferences.php';
 require_once 'responder.php';
+
 
 if (!isset($_SESSION['log'])){
 	$_SESSION['log'] = 0;  //0 for not logged in, 1 for logged in
@@ -39,21 +41,21 @@ if (isset($_POST['action'])){
 	// 		$_SESSION['log']==1;
 		}
 	}elseif ($action=='logout'){
+		//echo $_SESSION['log'];
 		if ($_SESSION['log']==1){
 			if ($_SESSION['shaking']==1){
 				matcher::stopShaking($_SESSION['user']);
 			}
 			userstate::logout($_SESSION['user']);
-			$_SESSION['log']=0;
-			unset($_SESSION['user']);
+			session_destroy();
 		}else{
 			// notify the user that it's an illegal action
 	// 		userstate::logout($_SESSION['user']);
 	// 		$_SESSION['log']=0;
 	// 		unset($_SESSION['user']);
 		}
-	}elseif ($action=='init'){
-		if ($_SESSION['shaking']==1 && $_SESSION['log']==1){
+	}elseif ($action=='init' && $_SESSION['log']==1){
+		if ($_SESSION['shaking']==1){
 			$initres = userstate::makeInitAgainResponse($_SESSION['user']);
 		}else{
 			$initres = userstate::makeInitResponse($_SESSION['user']);
@@ -63,12 +65,12 @@ if (isset($_POST['action'])){
 		preferences::editPreferences($_SESSION['user'], $_POST);
 	}elseif ($action=='getpref' && $_SESSION['log']==1){
 		preferences::getPreferences($_SESSION['user']);
-	}elseif ($action=='startmatch'){
-		if ($_SESSION['log']==1 && $_SESSION['shaking']==0){
+	}elseif ($action=='startmatch' && $_SESSION['log']==1){
+		if ($_SESSION['shaking']==0){
 			$_SESSION['shaking']=1;
 			preferences::editPreferences($_SESSION['user'], $_POST);
 			matcher::startShaking($_SESSION['user']);
-			matcher::getResult($_SESSION['user']);
+			responder::respondJson(matcher::refreshMatch($_SESSION['user']));
 		}else{
 			// notify the user that it's an illegal action
 // 			preferences::editPreferences($_SESSION['user'], $_POST);

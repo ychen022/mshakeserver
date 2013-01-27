@@ -1,0 +1,104 @@
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="profile.css"/>
+        <link rel="stylesheet" type="text/css" href="heading.css"/>
+        <link rel="stylesheet" type="text/css" href="css/imgareaselect-default.css"/>
+        <script type="text/javascript" src="http://code.jquery.com/jquery-1.9.0.min.js"></script>
+        <script type="text/javascript" src="scripts/jquery.imgareaselect.js"></script>
+        <script type="text/javascript" src="scripts/jquery.imgareaselect.min.js"></script>
+        <script type="text/javascript" src="scripts/jquery.imgareaselect.pack.js"></script>
+        <script type="text/javascript" src="profilejs.js"></script>
+    </head>
+    <body>
+        <div id="heading">
+                <div id="heading-content">
+                    
+                    <img id="logo" src="" />
+                    <div Id="bardiv">
+                    <ul id="bar">
+                        <li><a href="#profile">Home</a></li>
+                        <li><a href="#history">Search</a></li>
+                        <li><a href="#about">About</a></li>
+                    </ul>
+                    </div>
+                    <div id="nav_dropdown">
+                        <div id="useraccount">
+                            <div id="userpic">
+                                <img src="Min.jpg" height=38px width=38px>
+                            </div>
+                            <div id="account">
+                                <div class="toggle_symbol">
+                                    <div class="toggle_symbol_down">
+                                       &#9660;
+                                    </div>
+                                    <div class="toggle_symbol_up">
+                                       &#9650;
+                                    </div>
+                                </div>
+                                <div class="name">Min Zhang</div>
+                            </div>
+                        </div>
+                        <ul id="dropdown_list">
+                            <li class="dropdown_item">
+                                <a href="">My Profile</a>
+                            </li>
+                            <li class="dropdown_item">
+                                <a href="">Edit Profile</a>
+                            </li>
+                            <li class="dropdown_item">
+                                <a href="">Settings</a>
+                            </li>
+                            <li class="dropdown_item">
+                                <a href="" id="logout">Sign Out</a>
+                            </li>
+                        </ul>
+                    </div>
+                   
+                    
+                </div>
+            </div>
+        <div id="content">
+            <div id="image">
+                <img src="profile.png">
+                <a id="uploadimg">Edit image</a>
+            </div>
+            <div id="pro_info">
+                    <div class="info">
+                        <label>Name: </label>
+                        <input class="input_text" id="firstname" placeholder="First name">
+                        <input class="input_text" id="lastname" placeholder="Last name">
+                    </div>
+                    <div class="info">
+                        <label>Gender:</label>
+                        <input type="radio" id="gender" name="gender">Male
+                        <input type="radio" id="gender" name="gender">Female
+                    </div>
+                    <div class="info">
+                        <label>Address:</label>
+                        <input class="input_text" id="address">
+                    </div>
+                    <div class="info">
+                        <label>City:</label>
+                        <input class="input_text">
+                    </div>
+                    <div class="info">
+                        <label>State:</label>
+                        <input class="input_text">
+                    </div>
+                    <div class="info" id="email">
+                        <label>Email:</label>
+                        <input class="input_text" id="email">
+                    </div>
+                    <div class="info">
+                        <label>Favorate food:</label>
+                        <input class="input_text" id="food">
+                    </div>
+                    <a id="save">save</a>
+                    <a id="edit">edit</a>
+            </div>
+        </div>
+        <div id="upload">
+            
+        </div>
+    </body>
+</html>

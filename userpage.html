@@ -2,22 +2,38 @@
 <html>
     <head>
         <title>
-            MEALShake
+            MEALShake Mockup
         </title>
         <link rel="stylesheet" type="text/css" href="WebsiteMockupCSS.css" />
         <link rel="stylesheet" type="text/css" href="option.css"/>
         <link rel="stylesheet" type="text/css" href="match.css" />
         <link rel="stylesheet" type="text/css" href="loginpage.css"/>
+        <link rel="stylesheet" type="text/css" href="notif.css"/>
         <script src="http://code.jquery.com/jquery-1.9.0.js"></script>
-        <script src="notification.js"></script>
         <script src="userjs.js"></script>
-        <script src="shakejs.js"></script>
-        <script src="init.js"></script>
     </head>
     <body>
+        <div id="notification">
+            <div class="join">
+                <div class="header" id="joinheader">
+                    Join 
+                </div>
+                <div id="joinmess">
+                </div>
+            </div>
+            <div class="add">
+                <div class="header" id="inviteheader">
+                    Add
+                </div>
+                <div id="addmess">
+                </div>
+            </div>
+        </div>
         <div id="doc">
             <div id="heading">
+                <div id="notif">2 Notification</div>
                 <div id="heading-content">
+                    
                     <img id="logo" src="" />
                     <div Id="bardiv">
                     <ul id="bar">
@@ -45,58 +61,42 @@
                         </div>
                         <ul id="dropdown_list">
                             <li class="dropdown_item">
-                                <a>My Profile</a>
+                                <a href="">My Profile</a>
                             </li>
                             <li class="dropdown_item">
-                                <a>Edit Profile</a>
+                                <a href="">Edit Profile</a>
                             </li>
                             <li class="dropdown_item">
-                                <a>Settings</a>
+                                <a href="">Settings</a>
                             </li>
                             <li class="dropdown_item">
                                 <a id="logout">Sign Out</a>
                             </li>
                         </ul>
                     </div>
-                    <div id="notification">
-                        <div id="invit">2 Invitation</div>
-                        <ul id="invit_list">
-                        </ul>
-                    </div>
+                   
                     
                 </div>
             </div>
             <div id="content">
-                <!--
-                <div id="mis">
-                    <div id="popup">
-                        <img src="sam.JPG" alt="photo" height="45px" />
-                        <p id="msg">Menghsuan Pan (mpan1218) has invite you to a dinner.</p>
-                        <p id="num">&nbsp;&nbsp;5&nbsp;</p>
-                    </div>
-                    <div id="ringer">
-                        <img src="bells.png" alt="photo" height="55px" />
-                    </div>
-                </div>
-            -->
                      <div id="main">
                     <div id="option">
-                        <!--<h2><a href="#option">Option</a></h2>-->
                         <div class="options">
                             <div class="optionheader">
                             Location
                             </div>
                             <div class="choices">
                                 <p>Address</p>
-                                <input type="textarea" value="" id="address"></input><br />
+                                <input type="textarea" id="address" value=""></input><br />
                             </div>
                             <div class="choices">
                                 <p>City</p>
-                                <input type="textarea" value="" id="city"></input><br />
+                                <input type="textarea" id="city" value=""></input><br />
                             </div>
                             <div class="choices">
                                 <p>State</p>
-                                <select class="tb" id='state'>
+                                <select class="tb" id="state">
+                                    <option value="">State</option>
                                     <option value="AL">Alabama</option>
                                     <option value="AK">Alaska</option>
                                     <option value="AZ">Arizona</option>
@@ -150,11 +150,11 @@
                             </div>
                             <div class="choices">
                                 <p>Zip Code</p>
-                                <input type="textarea" value="" id="zip"></input><br />
+                                <input type="textarea" id="zip" value=""></input><br />
                             </div>
                             <div class="choices">
                                  <p>Distance (miles)</p>
-                                <input type="textarea" value="" id="distance"></input>
+                                <input type="textarea" id="distance" value=""></input>
                             </div>
                         </div>
                         <div class="options">
@@ -259,18 +259,23 @@
                                 </div>
                                 <form id="PRICE_FORM">
                                     <div class="priceinput">
+                                        <label for="pricemin">Minimum</label>
                                         <input class="input_filter" type="text" name="price_min" id="pricemin">
                                     </div>
                                     <div class="priceinput">
+                                        <label for="pricemax">Maximum</label>
                                         <input class="input_filter" type="text" name="price_max" id="pricemax">
+                
                                     </div>
                         </div>
-                        <input type="button" id="shake" value="Start Shaking" />
+                        <a id="shake">Shake</a> 
                     </div>
                     <div id="match">
                     </div>
                 </div>
             </div>
         </div>
+        <?php include 'Char-bar.php';
+        ?>
     </body>
 </html>

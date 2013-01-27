@@ -25,6 +25,9 @@ class userstate{
 	 */
 	public static function makeInitResponse($userid){
 		require_once("db.php");
+		$trueResponseArray = array();
+		$trueResponseArray['wantsget']=0;
+		
 		$responseArray = array();
 		$query = "SELECT * FROM preferences WHERE user_id=".$userid."";
 		$result = mysql_query($query, $db) or die(mysql_error());
@@ -62,7 +65,9 @@ class userstate{
 		$responseTypeArray['cuisine_12'] = $row2['cuisine_12'];
 		$responseArray['type'] = $responseTypeArray;
 		
-		return $responseArray;
+		$trueResponseArray['option']=$responseArray;
+		
+		return $trueResponseArray;
 	}
 	
 	/**
@@ -204,8 +209,8 @@ class userstate{
 		
 		require_once("db.php");
 		$query1 = "INSERT INTO users (username, password) VALUES ('".mysql_real_escape_string($un)."','".mysql_real_escape_string($pw)."')";
-		$result1 = mysql_query($query1, $db) or die(mysql_error());
-		if (!$result1){
+		$result1 = mysql_query($query1, $db) or die("q1".mysql_error());
+		if (!$result1){  // NOT ACTUALLY REACHABLE ATM
 			responder::respondSimple("Error inserting into database");
 			return -1;
 		}else{
@@ -213,30 +218,30 @@ class userstate{
 			$useridresult = mysql_fetch_assoc($useridquery);
 			$userid = $useridresult['LAST_INSERT_ID()'];
 			
-			$query2 = "INSERT INTO profiles (user_id, first_name, last_name, gender, email, phone, address, city, state, zipcode) VALUES ('".
-			$userid."','".mysql_real_escape_string($fn)."','".mysql_real_escape_string($ln)."','".mysql_real_escape_string($gender)."','".mysql_real_escape_string($email)."','".
-			mysql_real_escape_string($phone)."','".mysql_real_escape_string($address)."','".mysql_real_escape_string($city)."','".mysql_real_escape_string($state)."','".
-			mysql_real_escape_string($zipcode)."')";
-			$result2 = mysql_query($query2, $db) or die(mysql_error());
+			$query2 = "INSERT INTO profiles (user_id, first_name, last_name, gender, email, phone, address, city, state, zipcode) VALUES (".
+			$userid.",'".mysql_real_escape_string($fn)."','".mysql_real_escape_string($ln)."','".mysql_real_escape_string($gender)."','".mysql_real_escape_string($email)."','".
+			mysql_real_escape_string($phone)."','".mysql_real_escape_string($address)."','".mysql_real_escape_string($city)."','".mysql_real_escape_string($state)."',".
+			mysql_real_escape_string($zipcode).")";
+			$result2 = mysql_query($query2, $db) or die("q2".mysql_error());
 			
-			$query3 = "INSERT INTO preferences (user_id, address, city, state, zipcode) VALUES ('".
+			$query3 = "INSERT INTO preferences (user_id, address, city, state, zipcode) VALUES (".$userid.",'".
 			mysql_real_escape_string($address)."','".mysql_real_escape_string($city)."','".mysql_real_escape_string($state)."','".
 			mysql_real_escape_string($zipcode)."')";
-			$result3 = mysql_query($query3, $db) or die(mysql_error());
+			$result3 = mysql_query($query3, $db) or die("q3".mysql_error());
 			
-			if (!$result2){
+			$query4 = "INSERT INTO foodtype (user_id) VALUES (".$userid.")";
+			$result4 = mysql_query($query4, $db) or die("q4".mysql_error());
+			
+			if (!$result2){ // NOT ACTUALLY REACHABLE ATM
 				responder::respondSimple("signup_failure");
 				return -1;
 			}else{
 				responder::respondSimple("signup_success");
-				//return userstate::login($un, $pw);
 			}
 		}
 	}
 	
 	public static function logout($userid){
-		require_once("matcher.php");
-		//matcher::stopShaking($userid);
 		responder::respondSimple("logout_success");
 	}
 }

@@ -5,7 +5,7 @@ class preferences{
 		require_once("db.php");
 		
 		// Pretranslate data for storage
-		$gsize = ($request['number']==2 ? 0 : 1);
+		$gsize = $request['number'];
 		
 		if ($request['address']!=""){
 			$latlng = preferences::addressToLatLng($request['address'], $request['city'],
@@ -20,7 +20,7 @@ class preferences{
 		$query1 = "UPDATE preferences SET address='".$request['address']."', city='".
 				$request['city']."', state='".$request['state']."', zipcode=".
 				$request['zipcode'].", distance=".$distance.", groupsize=".
-				$gsize.", gender='".strtolower($request['gender'])."', price_min=".
+				$gsize.", gender='".strtolower($request['people'])."', price_min=".
 				$request['pricemin'].", price_max=".$request['pricemax'].", latitude=".
 				$latlng['lat'].", longitude=".$latlng['lng']." WHERE user_id=".
 				$userid;

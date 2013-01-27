@@ -1,0 +1,74 @@
+#content{
+    margin:0 auto;
+    height:100%;
+    width:940px;
+    margin-top:60px;
+}
+
+#image{
+    width:240px;
+    height:inherit;
+    background-attachment: scroll;
+    background-clip: border-box;
+    background-color: rgb(253, 252, 252);
+    background-image: none;
+    background-origin: padding-box;
+    background-size: auto;
+    border-bottom-color: rgb(204, 204, 204);
+    border-left-color: rgb(204, 204, 204);
+    border-left-style: solid;
+    border-left-width: 1px;
+    border-right-color: rgb(204, 204, 204);
+    border-top-color: rgb(204, 204, 204);
+    border-top-style: solid;
+    border-top-width: 1px;
+    box-shadow: rgba(0, 0, 0, 0.701961) 3px 3px 12px -7px inset;
+    color: rgb(85, 85, 85);
+    float:left;
+}
+
+#image img{
+    height:180px;
+    margin:20px;
+    width:190px;
+    padding:5px;
+    background-color:#fff;
+    border:1px solid #c8c8c8;
+    box-shadow: 1px 1px 2px 0 #d0d0d0;  
+}
+
+#uploadimg{
+    float:right;
+    margin-right:20px;
+}
+
+#pro_info{
+    width: 700px;
+    margin:0px -1px 0px -1px;
+
+    height:inherit;
+    background-color:#f3f3f3;
+    border: 1px solid #ccc;
+    border-bottom-color: rgb(204, 204, 204);
+    border-left-color: rgb(204, 204, 204);
+    border-left-style: solid;
+    border-left-width: 1px;
+    border-right-color: rgb(204, 204, 204);
+    border-top-color: rgb(204, 204, 204);
+    border-top-style: solid;
+    border-top-width: 1px;
+    box-shadow: rgba(0, 0, 0, 0.701961) 3px 3px 12px -7px inset;
+    color: rgb(85, 85, 85);
+    margin-left:242px;
+    padding:20px;
+}
+
+.info{
+    width:inherit;
+    height:40px;
+    font-size:18px;   
+}
+
+.info input{
+    
+}
