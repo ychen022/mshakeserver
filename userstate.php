@@ -19,6 +19,10 @@ class userstate{
 		}
 	}
 	
+	/**
+	 * Function to be called when the user just logged in and sent an init request.
+	 * @param unknown_type $userid
+	 */
 	public static function makeInitResponse($userid){
 		require_once("db.php");
 		$responseArray = array();
@@ -59,6 +63,118 @@ class userstate{
 		$responseArray['type'] = $responseTypeArray;
 		
 		return $responseArray;
+	}
+	
+	/**
+	 * Function to be called when a user who has already started shaking refreshes the page.
+	 * @param unknown_type $userid
+	 */
+	public static function makeInitAgainResponse($userid){
+		$toplayer = array();
+		$toplayer['wantsget'] = 1;
+		$optionsArray = userstate::makeInitResponse($userid);
+		$getArray = array();
+		$gNumberQuery = "SELECT current_group FROM preferences WHERE user_id=".$userid;
+		$gnResult = mysql_query($gNumberQuery, $db) or die(mysql_error());
+		$gnRow = mysql_fetch_assoc($gnResult);
+		$groupid = $gnRow['current_group'];
+		$getArray['group'] = grouper::makeGroupArray($groupid, $userid);
+		$getArray['match'] = matcher::refreshMatch($userid);
+		
+		$notification=array();
+		
+		$voteCheckQuery = "SELECT voting_invite, voting_join, invite_user_id, join_user_id FROM groups WHERE group_id=".$owngroup;
+		$vcResult = mysql_query($voteCheckQuery, $db) or die(mysql_error());
+		$vcRow = mysql_fetch_assoc($vcResult);
+		if ($vcRow){
+			if ($vcRow['voting_invite']==1){ // Create notification array containing a vote
+				$checkVoteQuery = "SELECT max_votes, yes_votes, no_votes FROM voting_invite WHERE group_id=".$owngroup;
+				$cvResult = mysql_query($checkVoteQuery, $db) or die(mysql_error());
+				$cvRow = mysql_fetch_assoc($cvResult);
+				if ($cvRow['yes_votes']/$cvRow['max_votes']>0.6){
+					$notification[]=grouper::makeVoteNotification($owngroup, "inviteDecision", 'A');
+					// Setup a vote for the invited group
+					grouper::transferInviteToJoin($owngroup, true);
+				}else if ($cvRow['no_votes']/$cvRow['max_votes']>0.6){
+					$notification[]=grouper::makeVoteNotification($owngroup, "inviteDecision", 'D');
+					grouper::transferInviteToJoin($owngroup, false);
+				}else{
+					$checkVoteStateQuery = "SELECT invite_vote FROM group_members WHERE user_id=".$userid;
+					$cvsResult = mysql_query($checkVoteStateQuery, $db) or die(mysql_error());
+					$cvsRow = mysql_fetch_assoc($cvsResult);
+					$voteStatus = $cvsRow['invite_vote'];
+					
+					if (voteStatus==2){
+						$inviteGroupQuery = "SELECT invite_group_id FROM groups WHERE group_id=".$owngroup;
+						$igResult = mysql_query($inviteGroupQuery, $db) or die(mysql_error());
+						$igRow = mysql_fetch_assoc($igResult);
+						$targetGroup = $igRow['invite_group_id'];
+						$notification[] = grouper::createVoteNotification($targetGroup, "inviteRequest", null, $userid);
+						}
+				}
+			}
+			if ($vcRow['voting_invite==2']){ // Create notification array containing a result
+				$checkVoteStateQuery = "SELECT invite_vote FROM group_members WHERE user_id=".$userid;
+				$cvsResult = mysql_query($checkVoteStateQuery, $db) or die(mysql_error());
+				$cvsRow = mysql_fetch_assoc($cvsResult);
+				$voteStatus = $cvsRow['invite_vote'];
+			
+				if (voteStatus==1){
+					$getDecisionQuery = "SELECT voting_result FROM groups WHERE group_id=".$owngroup;
+					$gdResult = mysql_query($getDecisionQuery, $db) or die(mysql_error());
+					$gdRow = mysql_fetch_assoc($gdResult);
+					$vdecision = $gdRow['voting_result'];
+					$notification[] = grouper::createVoteNotification($owngroup, "inviteDecision", $vdecision, $userid);
+					$changeVoteStateQuery = "UPDATE group_members SET invite_vote=2 WHERE user_id=".$userid;
+					$cgvResult = mysql_query($changeVoteStateQuery, $db) or die(mysql_error());
+				}
+			}
+			if ($vcRow['voting_join']==1){ // Create notification array containing a vote
+				$checkVoteQuery = "SELECT max_votes, yes_votes, no_votes FROM voting_join WHERE group_id=".$owngroup;
+				$cvResult = mysql_query($checkVoteQuery, $db) or die(mysql_error());
+				$cvRow = mysql_fetch_assoc($cvResult);
+				if ($cvRow['yes_votes']/$cvRow['max_votes']>0.6){
+					$notification[]=grouper::makeVoteNotification($owngroup, "joinDecision", 'A');
+					// Setup a vote for the invited group
+					grouper::cleanUpJoin($owngroup, true);
+				}else if ($cvRow['no_votes']/$cvRow['max_votes']>0.6){
+					$notification[]=grouper::makeVoteNotification($owngroup, "joinDecision", 'D');
+					grouper::cleanUpJoin($owngroup, false);
+				}else{
+					$checkVoteStateQuery = "SELECT join_vote FROM group_members WHERE user_id=".$userid;
+					$cvsResult = mysql_query($checkVoteStateQuery, $db) or die(mysql_error());
+					$cvsRow = mysql_fetch_assoc($cvsResult);
+					$voteStatus = $cvsRow['join_vote'];
+						
+					if (voteStatus==2){
+						$joinGroupQuery = "SELECT join_group_id FROM groups WHERE group_id=".$owngroup;
+						$jgResult = mysql_query($joinGroupQuery, $db) or die(mysql_error());
+						$jgRow = mysql_fetch_assoc($jgResult);
+						$targetGroup = $jgRow['join_group_id'];
+						$notification[] = grouper::createVoteNotification($targetGroup, "joinRequest", null);
+					}
+				}
+			}else if ($vcRow['voting_join']==2){ // Create notification array containing a result
+				$checkVoteStateQuery = "SELECT join_vote FROM group_members WHERE user_id=".$userid;
+				$cvsResult = mysql_query($checkVoteStateQuery, $db) or die(mysql_error());
+				$cvsRow = mysql_fetch_assoc($cvsResult);
+				$voteStatus = $cvsRow['join_vote'];
+			
+				if (voteStatus==1){
+					$getDecisionQuery = "SELECT join_group_id, voting_result FROM groups WHERE group_id=".$owngroup;
+					$gdResult = mysql_query($getDecisionQuery, $db) or die(mysql_error());
+					$gdRow = mysql_fetch_assoc($gdResult);
+					$vdecision = $gdRow['voting_result'];
+					$otherGroup = $gdRow['join_group_id'];
+					$notification[] = grouper::createVoteNotification($otherGroup, "joinDecision", $vdecision);
+					$changeVoteStateQuery = "UPDATE group_members SET join_vote=2 WHERE user_id=".$userid;
+					$cgvResult = mysql_query($changeVoteStateQuery, $db) or die(mysql_error());
+				}
+			}
+		}
+		$getArray['notification'] = $notification;
+		$toplayer['get'] = $getArray;
+		return $toplayer;
 	}
 	
 	public static function checkUserName($username){

@@ -20,9 +20,9 @@ if (isset($_POST['action'])){
 		if ($_SESSION['log']==0){
 			$result = userstate::login($_POST['username'],$_POST['password']);
 			$_SESSION['user']=$result;
-			$_SESSION['log']=($result==0)?0:1;  //TODO: Store this in database
+			$_SESSION['log']=($result==0)?0:1;  
 		}else{
-			echo $_SESSION['log'];
+			//echo $_SESSION['log'];
 			// notify the user that it's an illegal action
 	// 		$result = userstate::login($_POST['username'],$_POST['password']);
 	// 		$_SESSION['user']=$result;
@@ -33,12 +33,6 @@ if (isset($_POST['action'])){
 	}elseif ($action=='signup'){
 		if ($_SESSION['log']==0){
 			$result = userstate::signup($_POST);
-			if ($result!=-1 && $result!=0){ // "sign up failed"
-				$_SESSION['user'] = $result;
-				$_SESSION['log']=1;
-			}else{
-				
-			}
 		}else{
 			// notify the user that it's an illegal action
 	// 		$_SESSION['user'] = $result;
@@ -59,11 +53,15 @@ if (isset($_POST['action'])){
 	// 		unset($_SESSION['user']);
 		}
 	}elseif ($action=='init'){
-		$initres = userstate::makeInitResponse($_SESSION['user']);
+		if ($_SESSION['shaking']==1 && $_SESSION['log']==1){
+			$initres = userstate::makeInitAgainResponse($_SESSION['user']);
+		}else{
+			$initres = userstate::makeInitResponse($_SESSION['user']);
+		}
 		responder::respondJson($initres);
-	}elseif ($action=='editpref'){
+	}elseif ($action=='editpref' && $_SESSION['log']==1){
 		preferences::editPreferences($_SESSION['user'], $_POST);
-	}elseif ($action=='getpref'){
+	}elseif ($action=='getpref' && $_SESSION['log']==1){
 		preferences::getPreferences($_SESSION['user']);
 	}elseif ($action=='startmatch'){
 		if ($_SESSION['log']==1 && $_SESSION['shaking']==0){
@@ -76,16 +74,23 @@ if (isset($_POST['action'])){
 // 			preferences::editPreferences($_SESSION['user'], $_POST);
 // 			matcher::startShaking($_SESSION['user']);
 		}
-	}elseif ($action=='endmatch' && $_SESSION['shaking']==1){
+	}elseif ($action=='endmatch' && $_SESSION['log']==1 && $_SESSION['shaking']==1){
 		$_SESSION['shaking']=0;
 		matcher::stopShaking($_SESSION['user']);
-	}elseif ($action=='get' && $_SESSION['shaking']==1){
-		matcher::getResult($_SESSION['user']);
-	}elseif ($action=='vote'){
-		
+	}elseif ($action=='get' && $_SESSION['log']==1 && $_SESSION['shaking']==1){
+		$returnArray = matcher::getGetResult($_SESSION['user']);
+		responder::respondJson($returnArray);
+	}elseif ($action=='refresh' && $_SESSION['log']==1 && $_SESSION['shaking']==1){
+		$returnArray = matcher::refreshMatch($_SESSION['user']);
+		responder::respondJson($returnArray);
+	}elseif ($action=='startinvite' && $_SESSION['log']==1 && $_SESSION['shaking']==1){
+		grouper::requestToInvite($_SESSION['user'], $POST['groupID']);
+		responder::respondJson('good');
+	}elseif ($action=='invitevote' && $_SESSION['log']==1 && $_SESSION['shaking']==1){
+		grouper::processInviteVote($_SESSION['user'], $POST['vote']);
+	}elseif ($action=='joinvote' && $_SESSION['log']==1 && $_SESSION['shaking']==1){
+		grouper::processJoinVote($_SESSION['user'], $POST['vote']);
 	}elseif ($action=='viewuser'){
-		
-	}elseif ($action=='sendrequest'){
 		
 	}elseif ($action=='getgroup'){
 		

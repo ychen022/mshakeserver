@@ -12,11 +12,10 @@ class matcher{
 	
 	/**
 	 * Function to be called when receiving a "get" request.
-	 * Finds the user's group, checks if the group has any special activity going on,
-	 * and then finds matches based on the preferences of the group.
+	 * Finds the user's group, checks if the group has any special activity going on.
 	 * @param unknown_type $userid
 	 */
-	public static function getResult($userid){
+	public static function getGetResult($userid){
 		require_once('db.php');
 		
 		// -------Get the user's group------
@@ -34,27 +33,109 @@ class matcher{
 		$vcRow = mysql_fetch_assoc($vcResult);
 		if ($vcRow){
 			if ($vcRow['voting_invite']==1){ // Create notification array containing a vote
+				$checkVoteQuery = "SELECT max_votes, yes_votes, no_votes FROM voting_invite WHERE group_id=".$owngroup;
+				$cvResult = mysql_query($checkVoteQuery, $db) or die(mysql_error());
+				$cvRow = mysql_fetch_assoc($cvResult);
+				if ($cvRow['yes_votes']/$cvRow['max_votes']>0.6){
+					$notification[]=grouper::makeVoteNotification($owngroup, "inviteDecision", 'A');
+					// Setup a vote for the invited group
+					grouper::transferInviteToJoin($owngroup, true);
+				}else if ($cvRow['no_votes']/$cvRow['max_votes']>0.6){
+					$notification[]=grouper::makeVoteNotification($owngroup, "inviteDecision", 'D');
+					grouper::transferInviteToJoin($owngroup, false);
+				}else{
+					$checkVoteStateQuery = "SELECT invite_vote FROM group_members WHERE user_id=".$userid;
+					$cvsResult = mysql_query($checkVoteStateQuery, $db) or die(mysql_error());
+					$cvsRow = mysql_fetch_assoc($cvsResult);
+					$voteStatus = $cvsRow['invite_vote'];
+				
+					if (voteStatus==1){
+						$inviteGroupQuery = "SELECT invite_group_id FROM groups WHERE group_id=".$owngroup;
+						$igResult = mysql_query($inviteGroupQuery, $db) or die(mysql_error());
+						$igRow = mysql_fetch_assoc($igResult);
+						$targetGroup = $igRow['invite_group_id'];
+						$notification[] = grouper::createVoteNotification($targetGroup, "inviteRequest", null, $userid);
+						$changeVoteStateQuery = "UPDATE group_members SET invite_vote=2 WHERE user_id=".$userid;
+						$cgvResult = mysql_query($changeVoteStateQuery, $db) or die(mysql_error());
+					}
+				}
+			}
+			if ($vcRow['voting_invite==2']){ // Create notification array containing a result
 				$checkVoteStateQuery = "SELECT invite_vote FROM group_members WHERE user_id=".$userid;
 				$cvsResult = mysql_query($checkVoteStateQuery, $db) or die(mysql_error());
 				$cvsRow = mysql_fetch_assoc($cvsResult);
 				$voteStatus = $cvsRow['invite_vote'];
 				
 				if (voteStatus==1){
-					$inviteGroupQuery = "SELECT invite_group_id FROM groups WHERE group_id=".$owngroup;
-					$igResult = mysql_query($inviteGroupQuery, $db) or die(mysql_error());
-					$igRow = mysql_fetch_assoc($igResult);
-					$targetGroup = $igRow['invite_group_id'];
-					$notification = grouper::createVoteNotification($targetGroup, "inviteRequest", null, $userid);
+					$getDecisionQuery = "SELECT voting_result FROM groups WHERE group_id=".$owngroup;
+					$gdResult = mysql_query($getDecisionQuery, $db) or die(mysql_error());
+					$gdRow = mysql_fetch_assoc($gdResult);
+					$vdecision = $gdRow['voting_result'];
+					$notification[] = grouper::createVoteNotification($owngroup, "inviteDecision", $vdecision, $userid);
+					$changeVoteStateQuery = "UPDATE group_members SET invite_vote=2 WHERE user_id=".$userid;
+					$cgvResult = mysql_query($changeVoteStateQuery, $db) or die(mysql_error());
 				}
-			}else if ($vcRow['voting_invite==2']){ // Create notification array containing a result
-				
 			}
 			if ($vcRow['voting_join']==1){ // Create notification array containing a vote
-				grouper::createVoteNotification($owngroup, 1, $vcRow['join_user_id']);
+				$checkVoteQuery = "SELECT max_votes, yes_votes, no_votes FROM voting_join WHERE group_id=".$owngroup;
+				$cvResult = mysql_query($checkVoteQuery, $db) or die(mysql_error());
+				$cvRow = mysql_fetch_assoc($cvResult);
+				if ($cvRow['yes_votes']/$cvRow['max_votes']>0.6){
+					$notification[]=grouper::makeVoteNotification($owngroup, "joinDecision", 'A');
+					// Setup a vote for the invited group
+					grouper::cleanUpJoin($owngroup, true);
+				}else if ($cvRow['no_votes']/$cvRow['max_votes']>0.6){
+					$notification[]=grouper::makeVoteNotification($owngroup, "joinDecision", 'D');
+					grouper::cleanUpJoin($owngroup, false);
+				}else{
+					$checkVoteStateQuery = "SELECT join_vote FROM group_members WHERE user_id=".$userid;
+					$cvsResult = mysql_query($checkVoteStateQuery, $db) or die(mysql_error());
+					$cvsRow = mysql_fetch_assoc($cvsResult);
+					$voteStatus = $cvsRow['join_vote'];
+					
+					if (voteStatus==1){
+						$joinGroupQuery = "SELECT join_group_id FROM groups WHERE group_id=".$owngroup;
+						$jgResult = mysql_query($joinGroupQuery, $db) or die(mysql_error());
+						$jgRow = mysql_fetch_assoc($jgResult);
+						$targetGroup = $jgRow['join_group_id'];
+						$notification[] = grouper::createVoteNotification($targetGroup, "joinRequest", null);
+					}
+				}
 			}else if ($vcRow['voting_join']==2){ // Create notification array containing a result
+				$checkVoteStateQuery = "SELECT join_vote FROM group_members WHERE user_id=".$userid;
+				$cvsResult = mysql_query($checkVoteStateQuery, $db) or die(mysql_error());
+				$cvsRow = mysql_fetch_assoc($cvsResult);
+				$voteStatus = $cvsRow['join_vote'];
 				
+				if (voteStatus==1){
+					$getDecisionQuery = "SELECT join_group_id, voting_result FROM groups WHERE group_id=".$owngroup;
+					$gdResult = mysql_query($getDecisionQuery, $db) or die(mysql_error());
+					$gdRow = mysql_fetch_assoc($gdResult);
+					$vdecision = $gdRow['voting_result'];
+					$otherGroup = $gdRow['join_group_id'];
+					$notification[] = grouper::createVoteNotification($otherGroup, "joinDecision", $vdecision);
+					$changeVoteStateQuery = "UPDATE group_members SET join_vote=2 WHERE user_id=".$userid;
+					$cgvResult = mysql_query($changeVoteStateQuery, $db) or die(mysql_error());
+				}
 			}
 		}
+		
+		return notification;
+		
+	}
+	
+	/**
+	 * Function to be called when the user presses the refresh match result button.
+	 * @param unknown_type $userid
+	 */
+	public static function refreshMatch($userid){
+		require_once('db.php');
+		
+		// -------Get the user's group------
+		$query1 = "SELECT current_group FROM preferences WHERE user_id=".$userid;
+		$result1 = mysql_query($query1, $db) or die(mysql_error());
+		$grouprow = mysql_fetch_array($result1);
+		$owngroup = $grouprow['current_group'];
 		
 		// -------Group matching portion------
 		
@@ -71,9 +152,8 @@ class matcher{
 			}
 		}
 		
-		$toplayer = matcher::makeGetResponse($notification, $matchedList);
+		$toplayer = matcher::makeMatchResponse($matchedList, $userid);
 		return $toplayer;
-		
 	}
 	
 	/**
@@ -116,12 +196,11 @@ class matcher{
 	 * @param array $notification The already constructed notification
 	 * @param array $groupArray
 	 */
-	public static function makeGetResponse($notification, $groupArray){
+	public static function makeMatchResponse($groupArray, $userid){
 		if (count($groupArray)==0){
 			$toplayer = array();
 			$notification = array();
 			$match = array();
-			$toplayer['notification'] = $notification;
 			$toplayer['match'] = $match;
 		}
 		$toplayer = array();
@@ -131,13 +210,12 @@ class matcher{
 			$group = array();
 			$member = array();
 			
-			$overtop['group'] = grouper::makeGroupArray($groupid);
+			$overtop['group'] = grouper::makeGroupArray($groupid, $userid);
 			$overtop['member'] = grouper::makeMemberArray($groupid, true);
 			
 			$match[] = $overtop;
 		}
 		
-		$toplayer['notification'] = $notification;
 		$toplayer['match'] = $match;
 		return $toplayer;
 	}
@@ -149,7 +227,60 @@ class matcher{
 	 * @param unknown_type $userid
 	 */
 	public static function stopShaking($userid){
+		$query0 = "SELECT current_group FROM preferences WHERE user_id=".$userid;
+		$result0 = mysql_query($query0, $db) or die(mysql_error());
+		$row0 = mysql_fetch_array($result0);
+		$groupid = $row0['current_group'];
 		
+		$nopQuery = "SELECT user_id FROM group_members WHERE group_id=".$groupid;
+		$nopResult = mysql_query($nopQuery, $db) or die(mysql_error());
+		$nop = mysql_num_rows($nopResult);
+		
+		if ($nop==1){
+			$deleteGroupQuery = "DELETE FROM groups WHERE group_id=".$groupid;
+			$dgResult = mysql_query($deletedGroupQuery, $db) or die(mysql_error());
+		}else{
+			$voteCheckQuery = "SELECT voting_invite, voting_join, invite_user_id, join_user_id FROM groups WHERE group_id=".$groupid;
+			$vcResult = mysql_query($voteCheckQuery, $db) or die(mysql_error());
+			$vcRow = mysql_fetch_assoc($vcResult);
+			if ($vsRow){
+				if ($vcRow['voting_invite']==1){ // Create notification array containing a vote
+					$checkVoteStateQuery = "SELECT invite_vote FROM group_members WHERE user_id=".$userid;
+					$cvsResult = mysql_query($checkVoteStateQuery, $db) or die(mysql_error());
+					$cvsRow = mysql_fetch_assoc($cvsResult);
+					$voteStatus = $cvsRow['invite_vote'];
+						
+					if (voteStatus==1 or voteStatus==2){
+						$checkVoteQuery = "SELECT max_votes FROM voting_invite WHERE group_id=".$groupid;
+						$cvResult = mysql_query($checkVoteQuery, $db) or die(mysql_error());
+						$cvRow = mysql_fetch_assoc($cvResult);
+						$oldMax = $cvRow['max_votes'];
+						$newMax = $oldMax-1;
+						$updateVoteQuery = "UPDATE voting_invite SET max_votes=".$newMax." WHERE group_id=".$groupid;
+						$uvResult = mysql_query($updateVoteQuery, $db) or die (mysql_error());
+					}
+				}elseif ($vcRow['voting_join']==1){ // Create notification array containing a vote
+					$checkVoteStateQuery = "SELECT join_vote FROM group_members WHERE user_id=".$userid;
+					$cvsResult = mysql_query($checkVoteStateQuery, $db) or die(mysql_error());
+					$cvsRow = mysql_fetch_assoc($cvsResult);
+					$voteStatus = $cvsRow['join_vote'];
+						
+					if (voteStatus==1 or voteStatus==2){
+						$checkVoteQuery = "SELECT max_votes FROM voting_join WHERE group_id=".$groupid;
+						$cvResult = mysql_query($checkVoteQuery, $db) or die(mysql_error());
+						$cvRow = mysql_fetch_assoc($cvResult);
+						$oldMax = $cvRow['max_votes'];
+						$newMax = $oldMax-1;
+						$updateVoteQuery = "UPDATE voting_join SET max_votes=".$newMax." WHERE group_id=".$groupid;
+						$uvResult = mysql_query($updateVoteQuery, $db) or die (mysql_error());
+					}
+				}
+			}
+			$updatePrefQuery = "UPDATE preferences SET current_group=NULL WHERE user_id=".$userid;
+			$upResult = mysql_query($updatePrefQuery, $db) or die(mysql_error());
+			$updateGMQuery = "DELETE FROM group_members WHERE user_id=".$userid;
+			$ugmResult = mysql_query($updateGMQuery, $db) or die(mysql_error()); 
+		}
 	}
 	
 	
@@ -255,6 +386,42 @@ class matcher{
 			return true;
 		}
 		// INSERT GROUP SIZE/ AGE RANGE CHECK HERE
+	}
+	
+	/**
+	 * Calculates the average distance of the specified group from the specified user.
+	 * @param int $userid
+	 * @param int $groupid
+	 */
+	public static function getAvgDist($userid, $groupid){
+		$getLLQuery = "SELECT latitude, longitude FROM preferences WHERE user_id=".$userid;
+		$gllResult = mysql_query($getLLQuery, $db) or die(mysql_error());
+		$gllRow = mysql_fetch_assoc($gllResult);
+		$selflat = $gllRow['latitude'];
+		$selflng = $gllRow['longitude'];
+		$r = 3958.761;
+		$a1 = deg2rad($selflat);
+		$a2 = deg2rad($selflng);
+		
+		$getMembersQuery = "SELECT user_id FROM group_members WHERE group_id=".$groupid;
+		$gmResult = mysql_query($getMembersQuery, $db) or die(mysql_error());
+		$memberArray = array();
+		$totalDist = 0;
+		while ($gmRow = mysql_fetch_assoc($gmResult)){
+			$memberArray[] = $gmRow['user_id'];
+		}
+		foreach ($memberArray as $memberid){
+			$getMLLQuery = "SELECT latitude, longitude FROM preferences WHERE user_id=".$memberid;
+			$gmllResult = mysql_query($getMLLQuery, $db) or die(mysql_error());
+			$gmllRow = mysql_fetch_assoc($gmllResult);
+			$gmlat = $gmllRow['latitude'];
+			$gmlng = $gmllRow['longitude'];
+			$b1 = deg2rad($gmlat);
+			$b2 = deg2rad($gmlng);
+			$dist = acos(cos($a1)*cos($b1)*cos($a2)*cos($b2) + cos($a1)*sin($b1)*cos($a2)*sin($b2) + sin($a1)*sin($a2)) * $r;
+			$totalDist+=$dist;
+		}
+		return $totalDist/count($memberArray);
 	}
 	
 	/**

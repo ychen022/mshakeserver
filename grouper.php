@@ -32,6 +32,8 @@ class grouper{
 			$groupidresult = mysql_fetch_assoc($groupidquery);
 			$groupid = $groupidresult['LAST_INSERT_ID()'];
 			
+			$_SESSION['groupid'] = $groupid; // THIS MIGHT GO WRONG
+			
 			$query3 = "INSERT INTO group_members (group_id, user_id) VALUES (".$groupid.",".$initUser.")";
 			$result3 = mysql_query($query3, $db) or die(mysql_error());
 			
@@ -133,71 +135,7 @@ class grouper{
 	public static function removeUser($userid, $groupid){
 		
 	}
-	
-	/**
-	 * Function to be called when receiving an active call to join a group.
-	 * Starts a vote for everyone already in the group, then echo the result back to the request maker.
-	 * @param unknown_type $userid
-	 * @param unknown_type $groupid
-	 */
-	public static function requestToJoin($reqgroupid, $hostgroupid){
-		require_once('db.php');
-		$numberQuery = "SELECT * FROM group_members WHERE group_id=".$hostgroupid;
-		$nqResult = mysql_query($numberQuery, $db) or die(mysql_error());
-		$numMember = mysql_num_rows($nqResult);
-		$groupArray = array();
-		
-		if ($numMember==0){
-			return -1;
-		}
-		$newVoteQuery = "INSERT INTO voting_join (group_id, max_votes, yes_votes, no_votes) VALUES (".$hostgroupid.",".$numMember.",0, 0)";
-		$nvResult = mysql_query($newVoteQueryQuery, $db) or die(mysql_error());
-		
-		$setTargetQuery = "UPDATE groups SET join_group_id=".$reqgroupid;
-		$stResult = mysql_query($setTargetQuery, $db) or die(mysql_error());
-		
-		while ($nqRow = mysql_fetch_assoc($nqResult)){
-			$ruid = $nqResult['user_id'];
-			$mvQuery = "UPDATE group_member SET join_vote=1 WHERE user_id=".$ruid;
-			$mvResult = mysql_query($mvQuery, $db) or die(mysql_error());
-			
-			$nameQuery = "SELECT user_id, first_name, last_name FROM profiles WHERE user_id=".$ruid;
-			$nmResult = mysql_query($nameQuery, $db) or die(mysql_error());
-			$nmRow = mysql_fetch_assoc($nmResult);
-			$memberArray = array();
-			$memberArray['id'] = $nmRow['user_id'];
-			$memberArray['firstname'] = $nmRow['first_name'];
-			$memberArray['lastname'] = $nmRow['last_name'];
-			$groupArray[] = $memberArray;
-		}
-		
-		$checkVoteQuery = "SELECT max_votes, yes_votes, no_votes FROM voting_join WHERE group_id=".$hostgroupid;
-		while(true){
-			$cvResult = mysql_query($checkVoteQuery, $db) or die(mysql_error());
-			$cvRow = mysql_fetch_assoc($cvResult);
-			if ($cvRow['yes_votes']/$cvRow['max_votes']>0.6){
-				grouper::mergeGroup($reqgroupid, $hostgroupid);
-				$nArray = array();
-				$n0 = array();
-				$n0['type'] = 'joinDecision';
-				$n0['decisionType'] = 'A';
-				$n0['group'] = $groupArray;
-				$n0['groupID'] = $hostgroupid;
-				$nArray[] = $n0;
-				matcher::makeGetResponse($nArray, matcher::getMatchedGroups($hostgroupid));
-			}else if ($cvRow['no_votes']/$cvRow['max_votes']>0.6){
-				$nArray = array();
-				$n0 = array();
-				$n0['type'] = 'joinDecision';
-				$n0['decisionType'] = 'D';
-				$n0['group'] = $groupArray;
-				$n0['groupID'] = $hostgroupid;
-				$nArray[] = $n0;
-				matcher::makeGetResponse($nArray, matcher::getMatchedGroups($reqgroupid));
-			}
-			sleep(1);
-		}
-	}
+
 	
 	/**
 	 * Function to be called when receiving an active call to invite someone to the user's group.
@@ -206,8 +144,14 @@ class grouper{
 	 * @param unknown_type $userid
 	 * @param unknown_type $groupid
 	 */
-	public static function requestToInvite($userid, $reqgroupid, $hostgroupid){
+	public static function requestToInvite($userid, $reqgroupid){
 		require_once('db.php');
+		
+		$gNumberQuery = "SELECT current_group FROM preferences WHERE user_id=".$userid;
+		$gnResult = mysql_query($gNumberQuery, $db) or die(mysql_error());
+		$gnRow = mysql_fetch_assoc($gnResult);
+		$hostgroupid = $gnRow['current_group'];
+		
 		$numberQuery = "SELECT * FROM group_members WHERE group_id=".$hostgroupid;
 		$nqResult = mysql_query($numberQuery, $db) or die(mysql_error());
 		$numMember = mysql_num_rows($nqResult);
@@ -241,50 +185,172 @@ class grouper{
 			$groupArray[] = $memberArray;
 		}
 		
-		$checkVoteQuery = "SELECT max_votes, yes_votes, no_votes FROM voting_invite WHERE group_id=".$hostgroupid;
-		while(true){
-			$cvResult = mysql_query($checkVoteQuery, $db) or die(mysql_error());
-			$cvRow = mysql_fetch_assoc($cvResult);
-			if ($cvRow['yes_votes']/$cvRow['max_votes']>0.6){
-				grouper::mergeGroup($reqgroupid, $hostgroupid);
-				$nArray = array();
-				$n0 = array();
-				$n0['type'] = 'inviteDecision';
-				$n0['decisionType'] = 'A';
-				$n0['group'] = $groupArray;
-				$nArray[] = $n0;
-				matcher::makeGetResponse($nArray, matcher::getMatchedGroups($hostgroupid));
-			}else if ($cvRow['no_votes']/$cvRow['max_votes']>0.6){
-				$nArray = array();
-				$n0 = array();
-				$n0['type'] = 'inviteDecision';
-				$n0['decisionType'] = 'D';
-				$n0['group'] = $groupArray;
-				$nArray[] = $n0;
-				matcher::makeGetResponse($nArray, matcher::getMatchedGroups($reqgroupid));
-			}
-			sleep(1);
+	}
+	
+	
+	/**
+	 * Function to be called when a certain group's invite vote passed the success threshold.
+	 * Removes all voting related entries from the originating group, then sets up
+	 * the invited group's entries so that their members would receive the notification
+	 * on the next "get".
+	 * @param int $groupid The group that finished the invite vote
+	 * @param boolean $success
+	 */
+	public static function transferInviteToJoin($groupid, $success){
+		require_once('db.php');
+		$decision = 'D';
+		if ($success){
+			// Add vote to the invited group
+			$targetQuery = "SELECT invite_group_id FROM groups WHERE group_id=".$groupid;
+			$tResult = mysql_query($targetQuery, $db) or die(mysql_error());
+			$tRow = mysql_fetch_assoc($tResult);
+			$targetGroup = $tRow['invite_group_id'];
+			
+			$numberQuery = "SELECT * FROM group_members WHERE group_id=".$targetGroup;
+			$nqResult = mysql_query($numberQuery, $db) or die(mysql_error());
+			$numMember = mysql_num_rows($nqResult);
+			
+			$newVoteQuery = "INSERT INTO voting_join (group_id, max_votes, yes_votes, no_votes) VALUES (".$targetGroup.",".$numMember.",0, 0)";
+			$nvResult = mysql_query($newVoteQueryQuery, $db) or die(mysql_error());
+			
+			$setTargetQuery = "UPDATE groups SET join_group_id=".$reqgroupid;
+			$stResult = mysql_query($setTargetQuery, $db) or die(mysql_error());
+			
+			$mvQuery = "UPDATE group_member SET join_vote=1 WHERE group_id=".$targetGroup;
+			$mvResult = mysql_query($mvQuery, $db) or die(mysql_error());
+			$decision = 'A';
+		}
+		// Remove/edit vote in the originating group
+		$removeVoteQuery = "DELETE FROM voting_invite WHERE group_id=".$groupid;
+		$rvResult = mysql_query($removeVoteQuery, $db) or die(mysql_error());
+		$giveResultQuery = "UPDATE groups SET voting_result='".$decision."'";
+		$grResult = mysql_query($giveResultQuery);
+		$updateGroupQuery = "UPDATE groups SET voting_invite=2 WHERE group_id=".$groupid;
+		$ugResult = mysql_query($updateGroupQuery, $db) or die(mysql_error());
+		$prepareNotQuery = "UPDATE group_members SET invite_vote=1 WHERE group_id=".$groupid;
+		$pnResult = mysql_query($prepareNotQuery, $db) or die(mysql_error());
+		
+		
+	}
+	
+	/**
+	 * Function to be called when a certain group's join vote passed the success threshold.
+	 * Removes all voting related entries from the originating group, then sets up
+	 * both group's entries so that their members would receive the notification
+	 * on the next "get".
+	 * @param unknown_type $groupid
+	 */
+	public static function cleanUpJoin($groupid, $success){
+		// Remove/edit vote in the originating group
+		$decision = ($success)?"A":"D";
+		if ($success){
+			$getOtherQuery = "SELECT join_group_id FROM groups WHERE group_id=".$groupid;
+			$goResult = mysql_query($getOtherQuery, $db) or die(mysql_error());
+			$goRow = mysql_fetch_assoc($goresult);
+			$otherGroup = $goRow['join_group_id'];
+			$updateOtherGroupQuery = "UPDATE groups SET voting_invite=2 WHERE group_id=".$otherGroup;
+			$uogResult = mysql_query($updateOtherGroupQuery, $db) or die(mysql_error());
+			$updateOtherMembersQuery = "UPDATE group_members SET join_vote=1 WHERE group_id=".$otherGroup;
+			$uomResult = mysql_query($updateOtherMembersQuery, $db) or die(mysql_error());
+		}
+		$removeVoteQuery = "DELETE FROM voting_join WHERE group_id=".$groupid;
+		$rvResult = mysql_query($removeVoteQuery, $db) or die(mysql_error());
+		$giveResultQuery = "UPDATE groups SET voting_result='".$decision."'";
+		$grResult = mysql_query($giveResultQuery);
+		$updateGroupQuery = "UPDATE groups SET voting_join=2 WHERE group_id=".$groupid;
+		$ugResult = mysql_query($updateGroupQuery, $db) or die(mysql_error());
+		$prepareNotQuery = "UPDATE group_members SET join_vote=1 WHERE group_id=".$groupid;
+		$pnResult = mysql_query($prepareNotQuery, $db) or die(mysql_error());
+	}
+	
+	/**
+	 * Function to be called when the user submits a invite vote.
+	 * Process the info, and make changes to the database accordingly.
+	 * @param int $userid
+	 * @param string $yesvote
+	 */
+	public static function processInviteVote($userid, $yesvote){
+		$groupQuery = "SELECT current_group FROM preferences WHERE user_id=".$userid;
+		$gResult = mysql_query($groupQuery, $db) or die(mysql_error());
+		$gRow = mysql_fetch_assoc($gResult);
+		$groupid = $gRow['current_group'];
+		
+		if ($yesvote=="A"){
+			$membersQuery = "UPDATE group_members SET invite_vote=3 WHERE user_id=".$userid;
+			$mResult = mysql_query($membersQuery, $db);
+			
+			$getGroupVoteQuery = "SELECT yes_votes FROM voting_invite WHERE group_id=".$groupid;
+			$ggvResult = mysql_query($getGroupVoteQuery, $db) or die(mysql_error());
+			$ggvRow = mysql_fetch_assoc($ggvResult);
+			$currentVote = $sgvRow['yes_votes'];
+			$newVote = $currentVote+1;
+			
+			$setGroupVoteQuery = "UPDATE voting_invite SET yes_votes=".$newVote." WHERE group_id=".$groupid;
+			$sgvResult = mysql_query($setGroupVoteQuery, $db) or die(mysql_error());
+			
+			responder::respondSimple("good");
+		}elseif ($yesvote=="D"){
+			$membersQuery = "UPDATE group_members SET invite_vote=3 WHERE user_id=".$userid;
+			$mResult = mysql_query($membersQuery, $db);
+				
+			$getGroupVoteQuery = "SELECT yes_votes FROM voting_invite WHERE group_id=".$groupid;
+			$ggvResult = mysql_query($getGroupVoteQuery, $db) or die(mysql_error());
+			$ggvRow = mysql_fetch_assoc($ggvResult);
+			$currentVote = $sgvRow['no_votes'];
+			$newVote = $currentVote+1;
+				
+			$setGroupVoteQuery = "UPDATE voting_invite SET no_votes=".$newVote." WHERE group_id=".$groupid;
+			$sgvResult = mysql_query($setGroupVoteQuery, $db) or die(mysql_error());
+				
+			responder::respondSimple("good");
+		}else{
+			die("illegal action");
 		}
 	}
 	
 	/**
-	 * Function to be called when a vote should be started for the frontend.
-	 * @param unknown_type $appid
-	 * @param unknown_type $voterid
-	 */
-	public static function createVote($appid, $voterid){
-		
-	}
-	
-	/**
-	 * Function to be called when the user submits a vote.
+	 * Function to be called when the user submits a join vote.
 	 * Process the info, and make changes to the database accordingly.
-	 * @param unknown_type $userid
-	 * @param unknown_type $type
-	 * @param unknown_type $value
+	 * @param int $userid
+	 * @param string $yesvote
 	 */
-	public static function processVote($userid, $type, $value){
+	public static function processJoinVote($userid, $yesvote){
+		$groupQuery = "SELECT current_group FROM preferences WHERE user_id=".$userid;
+		$gResult = mysql_query($groupQuery, $db) or die(mysql_error());
+		$gRow = mysql_fetch_assoc($gResult);
+		$groupid = $gRow['current_group'];
 		
+		if ($yesvote=="A"){
+			$membersQuery = "UPDATE group_members SET join_vote=3 WHERE user_id=".$userid;
+			$mResult = mysql_query($membersQuery, $db);
+				
+			$getGroupVoteQuery = "SELECT yes_votes FROM voting_join WHERE group_id=".$groupid;
+			$ggvResult = mysql_query($getGroupVoteQuery, $db) or die(mysql_error());
+			$ggvRow = mysql_fetch_assoc($ggvResult);
+			$currentVote = $sgvRow['yes_votes'];
+			$newVote = $currentVote+1;
+				
+			$setGroupVoteQuery = "UPDATE voting_join SET yes_votes=".$newVote." WHERE group_id=".$groupid;
+			$sgvResult = mysql_query($setGroupVoteQuery, $db) or die(mysql_error());
+				
+			responder::respondSimple("good");
+		}elseif ($yesvote=="D"){
+			$membersQuery = "UPDATE group_members SET join_vote=3 WHERE user_id=".$userid;
+			$mResult = mysql_query($membersQuery, $db);
+		
+			$getGroupVoteQuery = "SELECT yes_votes FROM voting_join WHERE group_id=".$groupid;
+			$ggvResult = mysql_query($getGroupVoteQuery, $db) or die(mysql_error());
+			$ggvRow = mysql_fetch_assoc($ggvResult);
+			$currentVote = $sgvRow['no_votes'];
+			$newVote = $currentVote+1;
+		
+			$setGroupVoteQuery = "UPDATE voting_join SET no_votes=".$newVote." WHERE group_id=".$groupid;
+			$sgvResult = mysql_query($setGroupVoteQuery, $db) or die(mysql_error());
+		
+			responder::respondSimple("good");
+		}else{
+			die("illegal action");
+		}
 	}
 	
 	/**
@@ -322,7 +388,7 @@ class grouper{
 	 * Create an array [group] that will be returned to the frontend.
 	 * @param int $groupid
 	 */
-	public static function makeGroupArray($groupid){
+	public static function makeGroupArray($groupid, $userid){
 		$groupArray = array();
 		$groupQuery = "SELECT * FROM groups WHERE group_id=".$groupid;
 		$groupResult = mysql_query($groupQuery, $db) or die(mysql_error());
@@ -331,7 +397,7 @@ class grouper{
 		$groupArray['foodtype'] = matcher::getCuisineList($gRow, 3);
 		$groupArray['pricemin'] = $gRow['price_min'];
 		$groupArray['pricemax'] = $gRow['price_max'];
-		$groupArray['avgdist'] = 10;  //TODO fill in average distance
+		$groupArray['avgdist'] = matcher::getAvgDist($userid, $groupid);  
 		$groupArray['capacity'] = (($gsrow['capacity']==2)?2:5);
 		
 		$numberQuery = "SELECT user_id FROM group_members WHERE group_id=".$hostgroupid;
