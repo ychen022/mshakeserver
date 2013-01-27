@@ -2,11 +2,12 @@
 
 require_once 'responder.php';
 
+require_once("db.php");
+
 class userstate{
 	public static function login($un, $pw){
-		require_once("db.php");
 		$query = "SELECT * FROM users WHERE username='" . mysql_real_escape_string($un) . "'";
-		$result = mysql_query($query, $db) or die(mysql_error());
+		$result = mysql_query($query, $GLOBALS['db']) or die(mysql_error());
 		$row = mysql_fetch_assoc($result);
 		if ($pw == $row["password"]) {
 			responder::respondSimple("login_success");  
@@ -24,13 +25,12 @@ class userstate{
 	 * @param unknown_type $userid
 	 */
 	public static function makeInitResponse($userid){
-		require_once("db.php");
 		$trueResponseArray = array();
 		$trueResponseArray['wantsget']=0;
 		
 		$responseArray = array();
 		$query = "SELECT * FROM preferences WHERE user_id=".$userid."";
-		$result = mysql_query($query, $db) or die(mysql_error());
+		$result = mysql_query($query, $GLOBALS['db']) or die(mysql_error());
 		$row = mysql_fetch_assoc($result);
 	
 		$responseArray['address'] = $row['address'];
@@ -48,7 +48,7 @@ class userstate{
 		$responseArray['pricemin'] = $row['price_min'];
 		
 		$query2 = "SELECT * FROM foodtype WHERE user_id=".$userid."";
-		$result2 = mysql_query($query2, $db) or die(mysql_error());
+		$result2 = mysql_query($query2, $GLOBALS['db']) or die(mysql_error());
 		$row2 = mysql_fetch_assoc($result2);
 		$responseTypeArray = array();
 		$responseTypeArray['cuisine_1'] = $row2['cuisine_1'];
@@ -80,7 +80,7 @@ class userstate{
 		$optionsArray = userstate::makeInitResponse($userid);
 		$getArray = array();
 		$gNumberQuery = "SELECT current_group FROM preferences WHERE user_id=".$userid;
-		$gnResult = mysql_query($gNumberQuery, $db) or die(mysql_error());
+		$gnResult = mysql_query($gNumberQuery, $GLOBALS['db']) or die(mysql_error());
 		$gnRow = mysql_fetch_assoc($gnResult);
 		$groupid = $gnRow['current_group'];
 		$getArray['group'] = grouper::makeGroupArray($groupid, $userid);
@@ -89,12 +89,12 @@ class userstate{
 		$notification=array();
 		
 		$voteCheckQuery = "SELECT voting_invite, voting_join, invite_user_id, join_user_id FROM groups WHERE group_id=".$owngroup;
-		$vcResult = mysql_query($voteCheckQuery, $db) or die(mysql_error());
+		$vcResult = mysql_query($voteCheckQuery, $GLOBALS['db']) or die(mysql_error());
 		$vcRow = mysql_fetch_assoc($vcResult);
 		if ($vcRow){
 			if ($vcRow['voting_invite']==1){ // Create notification array containing a vote
 				$checkVoteQuery = "SELECT max_votes, yes_votes, no_votes FROM voting_invite WHERE group_id=".$owngroup;
-				$cvResult = mysql_query($checkVoteQuery, $db) or die(mysql_error());
+				$cvResult = mysql_query($checkVoteQuery, $GLOBALS['db']) or die(mysql_error());
 				$cvRow = mysql_fetch_assoc($cvResult);
 				if ($cvRow['yes_votes']/$cvRow['max_votes']>0.6){
 					$notification[]=grouper::makeVoteNotification($owngroup, "inviteDecision", 'A');
@@ -105,13 +105,13 @@ class userstate{
 					grouper::transferInviteToJoin($owngroup, false);
 				}else{
 					$checkVoteStateQuery = "SELECT invite_vote FROM group_members WHERE user_id=".$userid;
-					$cvsResult = mysql_query($checkVoteStateQuery, $db) or die(mysql_error());
+					$cvsResult = mysql_query($checkVoteStateQuery, $GLOBALS['db']) or die(mysql_error());
 					$cvsRow = mysql_fetch_assoc($cvsResult);
 					$voteStatus = $cvsRow['invite_vote'];
 					
 					if (voteStatus==2){
 						$inviteGroupQuery = "SELECT invite_group_id FROM groups WHERE group_id=".$owngroup;
-						$igResult = mysql_query($inviteGroupQuery, $db) or die(mysql_error());
+						$igResult = mysql_query($inviteGroupQuery, $GLOBALS['db']) or die(mysql_error());
 						$igRow = mysql_fetch_assoc($igResult);
 						$targetGroup = $igRow['invite_group_id'];
 						$notification[] = grouper::createVoteNotification($targetGroup, "inviteRequest", null, $userid);
@@ -120,23 +120,23 @@ class userstate{
 			}
 			if ($vcRow['voting_invite==2']){ // Create notification array containing a result
 				$checkVoteStateQuery = "SELECT invite_vote FROM group_members WHERE user_id=".$userid;
-				$cvsResult = mysql_query($checkVoteStateQuery, $db) or die(mysql_error());
+				$cvsResult = mysql_query($checkVoteStateQuery, $GLOBALS['db']) or die(mysql_error());
 				$cvsRow = mysql_fetch_assoc($cvsResult);
 				$voteStatus = $cvsRow['invite_vote'];
 			
 				if (voteStatus==1){
 					$getDecisionQuery = "SELECT voting_result FROM groups WHERE group_id=".$owngroup;
-					$gdResult = mysql_query($getDecisionQuery, $db) or die(mysql_error());
+					$gdResult = mysql_query($getDecisionQuery, $GLOBALS['db']) or die(mysql_error());
 					$gdRow = mysql_fetch_assoc($gdResult);
 					$vdecision = $gdRow['voting_result'];
 					$notification[] = grouper::createVoteNotification($owngroup, "inviteDecision", $vdecision, $userid);
 					$changeVoteStateQuery = "UPDATE group_members SET invite_vote=2 WHERE user_id=".$userid;
-					$cgvResult = mysql_query($changeVoteStateQuery, $db) or die(mysql_error());
+					$cgvResult = mysql_query($changeVoteStateQuery, $GLOBALS['db']) or die(mysql_error());
 				}
 			}
 			if ($vcRow['voting_join']==1){ // Create notification array containing a vote
 				$checkVoteQuery = "SELECT max_votes, yes_votes, no_votes FROM voting_join WHERE group_id=".$owngroup;
-				$cvResult = mysql_query($checkVoteQuery, $db) or die(mysql_error());
+				$cvResult = mysql_query($checkVoteQuery, $GLOBALS['db']) or die(mysql_error());
 				$cvRow = mysql_fetch_assoc($cvResult);
 				if ($cvRow['yes_votes']/$cvRow['max_votes']>0.6){
 					$notification[]=grouper::makeVoteNotification($owngroup, "joinDecision", 'A');
@@ -147,13 +147,13 @@ class userstate{
 					grouper::cleanUpJoin($owngroup, false);
 				}else{
 					$checkVoteStateQuery = "SELECT join_vote FROM group_members WHERE user_id=".$userid;
-					$cvsResult = mysql_query($checkVoteStateQuery, $db) or die(mysql_error());
+					$cvsResult = mysql_query($checkVoteStateQuery, $GLOBALS['db']) or die(mysql_error());
 					$cvsRow = mysql_fetch_assoc($cvsResult);
 					$voteStatus = $cvsRow['join_vote'];
 						
 					if (voteStatus==2){
 						$joinGroupQuery = "SELECT join_group_id FROM groups WHERE group_id=".$owngroup;
-						$jgResult = mysql_query($joinGroupQuery, $db) or die(mysql_error());
+						$jgResult = mysql_query($joinGroupQuery, $GLOBALS['db']) or die(mysql_error());
 						$jgRow = mysql_fetch_assoc($jgResult);
 						$targetGroup = $jgRow['join_group_id'];
 						$notification[] = grouper::createVoteNotification($targetGroup, "joinRequest", null);
@@ -161,19 +161,19 @@ class userstate{
 				}
 			}else if ($vcRow['voting_join']==2){ // Create notification array containing a result
 				$checkVoteStateQuery = "SELECT join_vote FROM group_members WHERE user_id=".$userid;
-				$cvsResult = mysql_query($checkVoteStateQuery, $db) or die(mysql_error());
+				$cvsResult = mysql_query($checkVoteStateQuery, $GLOBALS['db']) or die(mysql_error());
 				$cvsRow = mysql_fetch_assoc($cvsResult);
 				$voteStatus = $cvsRow['join_vote'];
 			
 				if (voteStatus==1){
 					$getDecisionQuery = "SELECT join_group_id, voting_result FROM groups WHERE group_id=".$owngroup;
-					$gdResult = mysql_query($getDecisionQuery, $db) or die(mysql_error());
+					$gdResult = mysql_query($getDecisionQuery, $GLOBALS['db']) or die(mysql_error());
 					$gdRow = mysql_fetch_assoc($gdResult);
 					$vdecision = $gdRow['voting_result'];
 					$otherGroup = $gdRow['join_group_id'];
 					$notification[] = grouper::createVoteNotification($otherGroup, "joinDecision", $vdecision);
 					$changeVoteStateQuery = "UPDATE group_members SET join_vote=2 WHERE user_id=".$userid;
-					$cgvResult = mysql_query($changeVoteStateQuery, $db) or die(mysql_error());
+					$cgvResult = mysql_query($changeVoteStateQuery, $GLOBALS['db']) or die(mysql_error());
 				}
 			}
 		}
@@ -183,9 +183,8 @@ class userstate{
 	}
 	
 	public static function checkUserName($username){
-		require_once('db.php');
 		$query = "SELECT * FROM users WHERE username='".$username."'";
-		$result = mysql_query($query, $db);
+		$result = mysql_query($query, $GLOBALS['db']);
 		$numcheck = mysql_num_rows($result);
 		if ($numcheck==0){
 			responder::respondSimple("good");
@@ -209,12 +208,12 @@ class userstate{
 		
 		require_once("db.php");
 		$query1 = "INSERT INTO users (username, password) VALUES ('".mysql_real_escape_string($un)."','".mysql_real_escape_string($pw)."')";
-		$result1 = mysql_query($query1, $db) or die("q1".mysql_error());
+		$result1 = mysql_query($query1, $GLOBALS['db']) or die("q1".mysql_error());
 		if (!$result1){  // NOT ACTUALLY REACHABLE ATM
 			responder::respondSimple("Error inserting into database");
 			return -1;
 		}else{
-			$useridquery = mysql_query("SELECT LAST_INSERT_ID()", $db) or die(mysql_error());
+			$useridquery = mysql_query("SELECT LAST_INSERT_ID()", $GLOBALS['db']) or die(mysql_error());
 			$useridresult = mysql_fetch_assoc($useridquery);
 			$userid = $useridresult['LAST_INSERT_ID()'];
 			
@@ -222,15 +221,15 @@ class userstate{
 			$userid.",'".mysql_real_escape_string($fn)."','".mysql_real_escape_string($ln)."','".mysql_real_escape_string($gender)."','".mysql_real_escape_string($email)."','".
 			mysql_real_escape_string($phone)."','".mysql_real_escape_string($address)."','".mysql_real_escape_string($city)."','".mysql_real_escape_string($state)."',".
 			mysql_real_escape_string($zipcode).")";
-			$result2 = mysql_query($query2, $db) or die("q2".mysql_error());
+			$result2 = mysql_query($query2, $GLOBALS['db']) or die("q2".mysql_error());
 			
 			$query3 = "INSERT INTO preferences (user_id, address, city, state, zipcode) VALUES (".$userid.",'".
 			mysql_real_escape_string($address)."','".mysql_real_escape_string($city)."','".mysql_real_escape_string($state)."','".
 			mysql_real_escape_string($zipcode)."')";
-			$result3 = mysql_query($query3, $db) or die("q3".mysql_error());
+			$result3 = mysql_query($query3, $GLOBALS['db']) or die("q3".mysql_error());
 			
 			$query4 = "INSERT INTO foodtype (user_id) VALUES (".$userid.")";
-			$result4 = mysql_query($query4, $db) or die("q4".mysql_error());
+			$result4 = mysql_query($query4, $GLOBALS['db']) or die("q4".mysql_error());
 			
 			if (!$result2){ // NOT ACTUALLY REACHABLE ATM
 				responder::respondSimple("signup_failure");

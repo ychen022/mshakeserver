@@ -132,7 +132,7 @@ $('document').ready(function(){
                 datatype: "JSON",
                 success: function(response){
                     result = $.parseJSON(response);
-                    matchParser(result);},
+                    matchParser(result.match);},
                 error: function (jqXHR, textStatus, errorThrown) {
                 alert("error!");
                 alert(jqXHR.responseText);},
@@ -281,6 +281,7 @@ $('document').ready(function(){
                         $(".memberfull_list").hide();\
                         $(".group").click(function(){\
                         $(this).parent().children(".memberfull_list").toggle("slide");\
+						});\
                         $(".add").click(function(){\
                             var req = {};\
                             req["action"] = "startinvite";\
@@ -296,15 +297,16 @@ $('document').ready(function(){
                                 alert("error!");\
                                 alert(jqXHR.responseText);},\
                             })\
-                        })\
-                        })</script>'
+                        });\
+						function startInviteParser(response){\
+							if(response=="startinvite_success"){}\
+							else{alert("Sorry! This group no longer exist!")}\
+						}\
+                        </script>';
         $('#match').html(groupinfo);
     }
     
-    function startInviteParser(response){
-        if(response=="startinvite_success"){}
-        else{alert("Sorry! This group no longer exist!")}
-    }
+
     
     function foodtyping(input){
         if(input=="cuisine_1"){return "American";}

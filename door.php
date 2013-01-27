@@ -6,6 +6,7 @@ require_once 'matcher.php';
 require_once 'grouper.php';
 require_once 'preferences.php';
 require_once 'responder.php';
+require_once('db.php');
 
 
 if (!isset($_SESSION['log'])){
@@ -70,7 +71,10 @@ if (isset($_POST['action'])){
 			$_SESSION['shaking']=1;
 			preferences::editPreferences($_SESSION['user'], $_POST);
 			matcher::startShaking($_SESSION['user']);
-			responder::respondJson(matcher::refreshMatch($_SESSION['user']));
+			$matchArray = matcher::refreshMatch($_SESSION['user']);
+			$returnArray=matcher::getGetResult($_SESSION['user']);
+			$returnArray['match'] = $matchArray['match'];
+			responder::respondJson($returnArray);
 		}else{
 			// notify the user that it's an illegal action
 // 			preferences::editPreferences($_SESSION['user'], $_POST);
@@ -86,7 +90,7 @@ if (isset($_POST['action'])){
 		$returnArray = matcher::refreshMatch($_SESSION['user']);
 		responder::respondJson($returnArray);
 	}elseif ($action=='startinvite' && $_SESSION['log']==1 && $_SESSION['shaking']==1){
-		grouper::requestToInvite($_SESSION['user'], $POST['groupID']);
+		grouper::requestToInvite($_SESSION['user'], $_POST['groupID']);
 		responder::respondJson('good');
 	}elseif ($action=='invitevote' && $_SESSION['log']==1 && $_SESSION['shaking']==1){
 		grouper::processInviteVote($_SESSION['user'], $POST['vote']);

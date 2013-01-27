@@ -1,8 +1,8 @@
 <?php
+require_once("db.php");
 
 class preferences{
 	public static function editPreferences($userid, $request){
-		require_once("db.php");
 		
 		// Pretranslate data for storage
 		$gsize = $request['number'];
@@ -24,7 +24,7 @@ class preferences{
 				$request['pricemin'].", price_max=".$request['pricemax'].", latitude=".
 				$latlng['lat'].", longitude=".$latlng['lng']." WHERE user_id=".
 				$userid;
-		$result1 = mysql_query($query1, $db) or die(mysql_error());;
+		$result1 = mysql_query($query1, $GLOBALS['db']) or die(mysql_error());;
 		
 		// Update row contents in foodtype table
 		$type = $request['type'];
@@ -35,7 +35,7 @@ class preferences{
 				$type['cuisine_8'].", cuisine_9=".$type['cuisine_9'].", cuisine_10=".
 				$type['cuisine_10'].", cuisine_11=".$type['cuisine_11'].", cuisine_12=".
 				$type['cuisine_12']." WHERE user_id=".$userid;
-		$result2 = mysql_query($query2, $db) or die(mysql_error());;
+		$result2 = mysql_query($query2, $GLOBALS['db']) or die(mysql_error());;
 		
 	}
 	
