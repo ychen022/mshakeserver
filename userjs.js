@@ -1,4 +1,7 @@
 $('document').ready(function(){
+    $('#current_group').hide();
+    $('#option').show();
+    
     var req = {};
     req['action'] = 'init'
     $.ajax({
@@ -58,9 +61,12 @@ $('document').ready(function(){
         var result = $.parseJSON(response);
         if(result.wantsget==0){updateOption(result.option)}
         else if(result.wantsget==1){
-            //get();
             notifParser(result.get.notification);
             matchParser(result.get.match);
+			groupParser(result.get.group);
+			$('#option').hide();
+			$('#current_group').show();
+            get();
         }
     }
     
@@ -132,11 +138,15 @@ $('document').ready(function(){
                 datatype: "JSON",
                 success: function(response){
                     result = $.parseJSON(response);
-                    matchParser(result.match);},
+                    matchParser(result.match);
+                    groupParser(result.group);
+                    notifParser(result.notification);
+                    $('#current_group').show();
+                    $('#option').hide();},
                 error: function (jqXHR, textStatus, errorThrown) {
                 alert("error!");
                 alert(jqXHR.responseText);},
-                //complete: function(){get();},
+                complete: function(){get();},
             })
         }
         else{alert(altext);}
@@ -157,7 +167,7 @@ $('document').ready(function(){
             datatype: "JSON",
             success: function(response){
                 result = $.parseJSON(response);
-                matchParser(result);},
+				matchParser(result.match);},
             error: function (jqXHR, textStatus, errorThrown) {
             alert("error!");
             alert(jqXHR.responseText);},
@@ -216,12 +226,11 @@ $('document').ready(function(){
     }
     
     function matchParser(match){
-        var groupinfo = "";
-        console.log(match.length);
+        var groupinfo = '';
         var num = match.length;
         for(var i=0; i<num; i++){
             var g = match[i];
-            groupinfo += '<div class="group_span" val='+g.group.ID+'>\
+            groupinfo += '<div class="group_span" value='+g.group.groupID+'>\
                             <div class="group_header">\
                                 <div class="add">+</div>\
                             </div>\
@@ -281,32 +290,95 @@ $('document').ready(function(){
                         $(".memberfull_list").hide();\
                         $(".group").click(function(){\
                         $(this).parent().children(".memberfull_list").toggle("slide");\
-						});\
+                        });\
                         $(".add").click(function(){\
                             var req = {};\
                             req["action"] = "startinvite";\
-                            req["groupID"] = $(this).parent().parent().val();\
+                            req["groupID"] = $(this).parent().parent().attr("value");\
                             $.ajax({\
                                 type: "POST",\
                                 url: "door.php",\
                                 data: req,\
                                 dataType: "text",\
-                                async: false,\
                                 success: function(response){startInviteParser(response);},\
                                 error: function (jqXHR, textStatus, errorThrown) {\
                                 alert("error!");\
                                 alert(jqXHR.responseText);},\
                             })\
                         });\
-						function startInviteParser(response){\
-							if(response=="startinvite_success"){}\
-							else{alert("Sorry! This group no longer exist!")}\
-						}\
-                        </script>';
-        $('#match').html(groupinfo);
+                        function startInviteParser(response){\
+                            if(response=="startinvite_success"){}\
+                            else{alert("Sorry! This group no longer exist!")}\
+                        }\
+					</script>'
+        $('#matchinfo').html(groupinfo);
     }
     
-
+    function groupParser(result){
+        var html = '<div class="cugroup_header">\
+                        Current group\
+                    </div>\
+                    <div id="info_header">\
+                        Group info\
+                    </div>\
+                    <div class="group_info">\
+                        <div class="distance">\
+                            Average distance:'+result.group.avgdist+'\ miles\
+                        </div>\
+                        <div class="food_type">\
+                            Food: '+result.group.foodtype[0]+' '+result.group.foodtype[1]+' '+result.group.foodtype[2]+'\
+                        </div>\
+                        <div class="price_range">\
+                            Price range: $'+result.group.pricemin+'-$'+result.group.pricemax+'\
+                        </div>\
+                    </div>\
+                    <ul class="current_group_list">';
+        var num = result.group.nop;
+        for(var i=0; i<num; i++){
+            var g = result.member[i];
+            var food = "";
+            for(var j=0; j<g.foodtype.length; j++){
+                food += foodtyping(g.foodtype[j])+' ';
+            }
+            var ready = ""
+            if(g.ready == 1){ready = "member_ready";}
+            html += '<li class="current_group_member '+ready+'">\
+                        <a class="member_img">\
+                            <img src="'+g.photolink+'">\
+                        </a>\
+                        <i id="readyicon" class="icon-ok-circle icon-2x"></i>\
+                        <ul class="member_info">\
+                            <li class="info_name">\
+                                '+g.firstname+' '+g.lastname+'\
+                            </li>\
+                            <li class="info_other">\
+                                <span class="info_price">'+g.gender+'</span>\
+                                <span class="info_distance">'+g.distance+' miles</span>\
+                            </li>\
+                            <li class="info_food">\
+                                '+food+'\
+                            </li>\
+                        </ul>\
+                    </li>'
+        }
+        html += '</ul>\
+                <a id="ready" class="btn btn-success">Ready !</a>';
+        html += '<script>\
+                $("#ready").click(function(){\
+                var req = {};\
+                req["action"] = "ready";\
+                $.ajax({\
+                    type: "POST",\
+                    url: "door.php",\
+                    data: req,\
+                    error: function (jqXHR, textStatus, errorThrown) {\
+                    alert("error!");\
+                    alert(jqXHR.responseText);},\
+                })\
+                })\
+                </script>'
+        $('#current_group').html(html);
+    }
     
     function foodtyping(input){
         if(input=="cuisine_1"){return "American";}
@@ -324,7 +396,7 @@ $('document').ready(function(){
         else{return null;}
     }
     
-        function notifParser(notifiction){
+    function notifParser(notifiction){
         var invite = ''
         var join = ''
         var num = notifiction.length;
@@ -350,65 +422,26 @@ $('document').ready(function(){
                 invite += '<a name="add_decision" class="notif_item">\
                             The request to add \
                             <span class="group_name">'+getGroupMember(noti.group)+'</span>\
-                            to your group has been '+getInviteDecision(noti.decisionType)+'.\
+                            to your group has been\ '+getInviteDecision(noti.decisionType)+'.\
                             </a>'
             }else if(type == "joinRequest"){
-                join += '<a name="join_request" val='+noti.groupID+' class="notif_item" name="joinrequest"><span class="group_name">'
-                            + getGroupMember(noti.group);
-                            + '</span>\
+                join += '<a name="join_request" value='+noti.groupID+' class="notif_item" name="joinrequest">\
+                            <span class="group_name">'+getGroupMember(noti.group)+'</span>\
                             invite you to join their group.\
                             </a>'
             }else if(type == "inviteRequest"){
-                invite += '<a name="add_request" val='+noti.groupID+'class="notif_item" name="addrequest">'
+                invite += '<a name="add_request" value='+noti.groupID+'class="notif_item" name="addrequest">'
                             +noti.initiator.firstname+' '+noti.initiator.lastname+'\'s send a request to add\
                             <span class="group_name">'+getGroupMember(noti.group)+'</span>\
                             to your group.\
                             </a>'
             }else{alert("Yang Chen is stupid!")}
-            join += $('#joinmess').html();
-            invite += $('#addmess').html();
-            $('#joinmess').html(join);
-            $('#addmess').html(invite);
         }
+        join += $('#joinmess').html();
+        invite += $('#addmess').html();
+        $('#joinmess').html(join);
+        $('#addmess').html(invite);
     }
-    
-    $('.notif_item[name=addrequest]').click(function(){
-        var req = {};
-        req['action'] = "getGroup";
-        req['groupID'] = $(this).val();
-        $(this).remove();
-        $.ajax({
-            type: "POST",
-            url: "door.php",
-            data: req,
-            dataType: 'JSON',
-            async: false,
-            success: function(response){addRequestParser(response);},
-            error: function (jqXHR, textStatus, errorThrown) {
-            alert("error!");
-            alert(jqXHR.responseText);},
-            complete: function(){setTimeout(function(){get();}, 5000);},
-        })
-    })
-    
-    $('.notif_item[name=joinrequest]').click(function(){
-        var req = {};
-        req['action'] = "getGroup";
-        req['groupID'] = $(this).val();
-        $(this).remove();
-        $.ajax({
-            type: "POST",
-            url: "door.php",
-            data: req,
-            dataType: 'JSON',
-            async: false,
-            success: function(response){joinRequestParser(response);},
-            error: function (jqXHR, textStatus, errorThrown) {
-            alert("error!");
-            alert(jqXHR.responseText);},
-            complete: function(){setTimeout(function(){get();}, 5000);},
-        })
-    })
     
     function addRequestParser(response){
         var g = $.parseJSON(response)
@@ -537,7 +570,6 @@ $('document').ready(function(){
             url: "door.php",
             data: req,
             dataType: 'text',
-            async: false,
             error: function (jqXHR, textStatus, errorThrown) {
             alert("error!");
             alert(jqXHR.responseText);},
@@ -555,7 +587,6 @@ $('document').ready(function(){
             url: "door.php",
             data: req,
             dataType: 'text',
-            async: false,
             error: function (jqXHR, textStatus, errorThrown) {
             alert("error!");
             alert(jqXHR.responseText);},
@@ -566,11 +597,11 @@ $('document').ready(function(){
         var num = group.length;
         var name = "";
         if(num == 1){name = group[0].firstname+' '+group[0].lastname}
-        if(num == 2){name = group[0].firstname+' '+group[0].lastname+' and '
+        else if(num == 2){name = group[0].firstname+' '+group[0].lastname+'\ and '
             +group[1].firstname+' '+group[1].lastname}
         else{
             for(var i=0; i<num-1; i++){name += group[i].firstname+' '+group[i].lastname+', ';}
-            name += 'and '+group[num-1].firstname+' '+group[num-1].lastname;
+            name += 'and\ '+group[num-1].firstname+' '+group[num-1].lastname;
         }
         return name;
     }
@@ -588,27 +619,26 @@ $('document').ready(function(){
     }
     
     function get(){
-    if (true){
-        var req = {};
-        req['action'] = 'get';
-        $.ajax({
-            type: "POST",
-            url: "door.php",
-            data: req,
-            dataType: 'JSON',
-            async: false,
-            success: function(response){infoParser(response);},
-            error: function (jqXHR, textStatus, errorThrown) {
-            alert("error!");
-            alert(jqXHR.responseText);},
-            complete: function(){setTimeout(function(){get();}, 5000);},
-        })
-    }
+        if (true){
+            var req = {};
+            req['action'] = 'get';
+            $.ajax({
+                type: "POST",
+                url: "door.php",
+                data: req,
+                dataType: 'JSON',
+                success: function(response){infoParser(response);},
+                error: function (jqXHR, textStatus, errorThrown) {
+                alert("error!");
+                alert(jqXHR.responseText);},
+                complete: function(){setTimeout(function(){get();}, 5000);},
+            })
+        }
     }
     
     function infoParser(response){
-        result = $.parseJSON(response);
-        matchParserNoti(result.notification);
+        notifParser(response.notification);
+        groupParser(response.group);
     }
     
     function shaking(){
@@ -632,4 +662,16 @@ $('document').ready(function(){
         $('.notif_item[name=join_decision]').remove();
         $('.notif_item[name=add_decision]').remove();
     }
+    
+    $('#home').click(function(){
+        window.location.replace('userpage.html');
+    })
+    
+    $('#profile').click(function(){
+        window.location.replace('profile.html');
+    })
+    
+    $('#about').click(function(){
+        window.location.replace('about.html');
+    })
 })

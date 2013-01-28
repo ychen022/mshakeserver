@@ -1,0 +1,15 @@
+#upload{
+    width:800px;
+    border:1px solid #c8c8c8;
+    margin:0px auto;
+    position:relative;
+    top:70px;
+}
+
+#photo{
+    width:440px;
+    height:440px;
+    margin:30px;
+    overflow:hidden;
+    border:1px solid #c8c8c8;
+}

@@ -142,7 +142,7 @@ class grouper{
 	 * Starts a vote for everyone already in the group, then echo the result back to the request maker.
 	 * If the vote passes, automatically invoke the sequence to request join.
 	 * @param unknown_type $userid
-	 * @param unknown_type $groupid
+	 * @param unknown_type $reqgroupid The group being invited
 	 */
 	public static function requestToInvite($userid, $reqgroupid){
 		
@@ -162,15 +162,15 @@ class grouper{
 		$newVoteQuery = "INSERT INTO voting_invite (group_id, max_votes, yes_votes, no_votes) VALUES (".$hostgroupid.",".$numMember.",1,0)";
 		$nvResult = mysql_query($newVoteQuery, $GLOBALS['db']) or die("grouper_163:".mysql_error());
 		
-		$setTargetQuery = "UPDATE groups SET invite_group_id=".$reqgroupid;
+		$setTargetQuery = "UPDATE groups SET invite_group_id=".$reqgroupid.",voting_invite=1 WHERE group_id=".$hostgroupid;
 		$stResult = mysql_query($setTargetQuery, $GLOBALS['db']) or die("grouper_166:".mysql_error());
 		
 		while ($nqRow = mysql_fetch_assoc($nqResult)){
-			$ruid = $nqResult['user_id'];
+			$ruid = $nqRow['user_id'];
 			if ($ruid==$userid){
-				$mvQuery = "UPDATE group_member SET invite_vote=2 WHERE user_id=".$ruid;
+				$mvQuery = "UPDATE group_members SET invite_vote=3 WHERE user_id=".$ruid;
 			}else{
-				$mvQuery = "UPDATE group_member SET invite_vote=1 WHERE user_id=".$ruid;
+				$mvQuery = "UPDATE group_members SET invite_vote=1 WHERE user_id=".$ruid;
 			}
 			$mvResult = mysql_query($mvQuery, $GLOBALS['db']) or die("grouper_175:".mysql_error());
 			
@@ -209,19 +209,19 @@ class grouper{
 			$numMember = mysql_num_rows($nqResult);
 			
 			$newVoteQuery = "INSERT INTO voting_join (group_id, max_votes, yes_votes, no_votes) VALUES (".$targetGroup.",".$numMember.",0, 0)";
-			$nvResult = mysql_query($newVoteQueryQuery, $GLOBALS['db']) or die("grouper_212:".mysql_error());
+			$nvResult = mysql_query($newVoteQuery, $GLOBALS['db']) or die("grouper_212:".mysql_error());
 			
-			$setTargetQuery = "UPDATE groups SET join_group_id=".$reqgroupid;
+			$setTargetQuery = "UPDATE groups SET join_group_id=".$groupid.", voting_join=1 WHERE group_id=".$targetGroup;
 			$stResult = mysql_query($setTargetQuery, $GLOBALS['db']) or die("grouper_215:".mysql_error());
 			
-			$mvQuery = "UPDATE group_member SET join_vote=1 WHERE group_id=".$targetGroup;
+			$mvQuery = "UPDATE group_members SET join_vote=1 WHERE group_id=".$targetGroup;
 			$mvResult = mysql_query($mvQuery, $GLOBALS['db']) or die("grouper_218:".mysql_error());
 			$decision = 'A';
 		}
 		// Remove/edit vote in the originating group
 		$removeVoteQuery = "DELETE FROM voting_invite WHERE group_id=".$groupid;
 		$rvResult = mysql_query($removeVoteQuery, $GLOBALS['db']) or die("grouper_233:".mysql_error());
-		$giveResultQuery = "UPDATE groups SET voting_result='".$decision."'";
+		$giveResultQuery = "UPDATE groups SET voting_result='".$decision."' WHERE group_id=".$groupid;
 		$grResult = mysql_query($giveResultQuery);
 		$updateGroupQuery = "UPDATE groups SET voting_invite=2 WHERE group_id=".$groupid;
 		$ugResult = mysql_query($updateGroupQuery, $GLOBALS['db']) or die("grouper_227:".mysql_error());
@@ -356,7 +356,7 @@ class grouper{
 	 * Types:
 	 * -inviteRequest: $groupid is the group being invited
 	 * -joinRequest: $groupid is the group being merged with
-	 * -inviteDecision: $groupid is the initiator's group
+	 * -inviteDecision: $groupid is is the group being invited
 	 * -joinDecision: $groupid is the group being merged with
 	 * @param int $groupid The group related with the action.
 	 * @param string $type 
@@ -391,7 +391,7 @@ class grouper{
 		$groupQuery = "SELECT * FROM groups WHERE group_id=".$groupid;
 		$groupResult = mysql_query($groupQuery, $GLOBALS['db']) or die("grouper_392:".mysql_error());
 		$gRow = mysql_fetch_assoc($groupResult);
-		$groupArray['id'] = $groupid;
+		$groupArray['groupID'] = $groupid;
 		$groupArray['foodtype'] = matcher::getCuisineList($gRow, 3);
 		$groupArray['pricemin'] = $gRow['price_min'];
 		$groupArray['pricemax'] = $gRow['price_max'];
@@ -412,7 +412,7 @@ class grouper{
 	 * @param int $groupid
 	 * @param boolean $completeinfo
 	 */
-	public static function makeMemberArray($groupid, $completeinfo){
+	public static function makeMemberArray($groupid, $completeinfo=true){
 		$membersArray = array();
 		$numberQuery = "SELECT * FROM group_members WHERE group_id=".$groupid;
 		$nqResult = mysql_query($numberQuery, $GLOBALS['db']) or die("grouper_418:".mysql_error());
@@ -421,13 +421,14 @@ class grouper{
 		if ($completeinfo){
 			while ($nqRow = mysql_fetch_assoc($nqResult)){
 				$memberid = $nqRow['user_id'];
-				$nameQuery = "SELECT first_name, last_name, gender, photolink FROM profiles WHERE user_id=".$memberid;
+				$nameQuery = "SELECT first_name, last_name, gender, photolink, thumblink FROM profiles WHERE user_id=".$memberid;
 				$nmResult = mysql_query($nameQuery, $GLOBALS['db']) or die("grouper_424:".mysql_error());
 				$nmRow = mysql_fetch_array($nmResult);
 				$memberArray['id']=$memberid;
 				$memberArray['firstname'] = $nmRow['first_name'];
 				$memberArray['lastname'] = $nmRow['last_name'];
 				$memberArray['photolink'] = $nmRow['photolink'];
+				$memberArray['thumblink'] = $nmRow['thumblink'];
 				$memberArray['gender'] = $nmRow['gender'];
 				$foodTypeQuery = "SELECT * FROM foodtype WHERE user_id=".$memberid;
 				$ftResult = mysql_query($foodTypeQuery, $GLOBALS['db']) or die("grouper_419:".mysql_error());
@@ -438,7 +439,8 @@ class grouper{
 			
 		}else{
 			while ($nqRow = mysql_fetch_assoc($nqResult)){
-				$nameQuery = "SELECT user_id, first_name, last_name FROM profiles WHERE user_id=".$ruid;
+				$memberid = $nqRow['user_id'];
+				$nameQuery = "SELECT user_id, first_name, last_name FROM profiles WHERE user_id=".$memberid;
 				$nmResult = mysql_query($nameQuery, $GLOBALS['db']) or die("grouper_437:".mysql_error());
 				$nmRow = mysql_fetch_assoc($nmResult);
 				$memberArray = array();

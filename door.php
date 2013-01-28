@@ -36,10 +36,6 @@ if (isset($_POST['action'])){
 	}elseif ($action=='signup'){
 		if ($_SESSION['log']==0){
 			$result = userstate::signup($_POST);
-		}else{
-			// notify the user that it's an illegal action
-	// 		$_SESSION['user'] = $result;
-	// 		$_SESSION['log']==1;
 		}
 	}elseif ($action=='logout'){
 		//echo $_SESSION['log'];
@@ -49,16 +45,12 @@ if (isset($_POST['action'])){
 			}
 			userstate::logout($_SESSION['user']);
 			session_destroy();
-		}else{
-			// notify the user that it's an illegal action
-	// 		userstate::logout($_SESSION['user']);
-	// 		$_SESSION['log']=0;
-	// 		unset($_SESSION['user']);
 		}
 	}elseif ($action=='init' && $_SESSION['log']==1){
 		if ($_SESSION['shaking']==1){
 			$initres = userstate::makeInitAgainResponse($_SESSION['user']);
 		}else{
+			//$initres = userstate::makeInitAgainResponse($_SESSION['user']);  //TODO debug
 			$initres = userstate::makeInitResponse($_SESSION['user']);
 		}
 		responder::respondJson($initres);
@@ -86,20 +78,35 @@ if (isset($_POST['action'])){
 	}elseif ($action=='get' && $_SESSION['log']==1 && $_SESSION['shaking']==1){
 		$returnArray = matcher::getGetResult($_SESSION['user']);
 		responder::respondJson($returnArray);
-	}elseif ($action=='refresh' && $_SESSION['log']==1 && $_SESSION['shaking']==1){
+	}elseif ($action=='refreshmatch' && $_SESSION['log']==1 && $_SESSION['shaking']==1){
 		$returnArray = matcher::refreshMatch($_SESSION['user']);
 		responder::respondJson($returnArray);
 	}elseif ($action=='startinvite' && $_SESSION['log']==1 && $_SESSION['shaking']==1){
 		grouper::requestToInvite($_SESSION['user'], $_POST['groupID']);
-		responder::respondJson('good');
+		responder::respondSimple('startinvite_success');
 	}elseif ($action=='invitevote' && $_SESSION['log']==1 && $_SESSION['shaking']==1){
 		grouper::processInviteVote($_SESSION['user'], $POST['vote']);
 	}elseif ($action=='joinvote' && $_SESSION['log']==1 && $_SESSION['shaking']==1){
 		grouper::processJoinVote($_SESSION['user'], $POST['vote']);
+	}elseif ($action=='uploadpicture'){
+		preferences::uploadProfilePic();
+	}elseif ($action=='uploadthumb'){
+		preferences::uploadThumbnail();
 	}elseif ($action=='viewuser'){
 		
 	}elseif ($action=='getgroup'){
-		
+		$returnArray = array();
+		$returnArray['group'] = grouper::makeGroupArray($_POST['groupID'], $_SESSION['user']);
+		$returnArray['member'] = grouper::makeMemberArray($_POST['groupID'], true);
+		responder::respondJson($returnArray);
+	}elseif ($action=='usercheck'){
+		if ($_SESSION['log']==1){
+			if ($_SESSION['shaking']==1){
+				matcher::stopShaking($_SESSION['user']);
+			}
+			userstate::logout($_SESSION['user']);
+			session_destroy();
+		}
 	}
 }
 ?>

@@ -1,0 +1,133 @@
+#current_group{
+    width: 220px;
+    padding-left:10px;
+    padding-right:10px;
+    padding-top:10px;
+    padding-bottom:10px;
+    margin-top:20px;
+    margin-bottom:20px;
+    margin-left:-1px;
+    background-color:#fff;
+    font-family: Arial,Tahoma,"Bitstream Vera";
+    /*
+    background-attachment: scroll;
+    background-clip: border-box;
+    background-color: rgb(253, 252, 252);
+    background-image: none;
+    background-origin: padding-box;
+    background-size: auto;
+    border-bottom-color: rgb(204, 204, 204);
+    border-left-color: rgb(204, 204, 204);
+    border-left-style: solid;
+    border-left-width: 1px;
+    border-right-color: rgb(204, 204, 204);
+    border-top-color: rgb(204, 204, 204);
+    border-top-style: solid;
+    border-top-width: 1px;
+    box-shadow: 3px 3px 12px -7px rgba(0,0,0,0.7) inset;
+    */
+    border:1px solid #d8d8d8;
+    box-shadow: 1px 1px 2px 0 #d0d0d0;
+    color: rgb(85, 85, 85);
+   float:left;
+    
+}
+
+.cugroup_header{
+    font-size:18px;
+    font-weight:bold;
+    width:220px;
+    margin-top:10px;
+    padding-bottom:6px;
+    border-bottom:1px solid #c8c8c8;
+    color:#2F96B4;
+}
+
+#info_header{
+    font-size:12px;
+    width:220px;
+    padding-top:4px;
+    height:16px;
+    
+    vertical-align:baseline;
+    font-weight:bold;
+    color:#303030;
+}
+
+#current_group .group_info{
+    margin:0px;
+    padding-bottom:4px;
+    border-bottom:1px solid #c8c8c8;
+    color: #303030;
+}
+.current_group_list{
+    padding:0px;
+    padding-top:10px;
+    margin:0px;
+    list-style-type: none;
+}
+.current_group_member{
+    padding:10px 0 10px 0;
+    margin:0;
+    float:left;
+    
+}
+.current_group_member .member_img, .current_group_member img{
+    height:80px;
+    width:80px;
+}
+
+.current_group_member .member_info{
+    
+    margin-left:8px;
+    width:130px;
+    line-height:20px;
+    font-size:12px;
+}
+.current_group_member .member_info .info_other, .info_food{
+    color:#888888;
+}
+
+.info_other .info_price{
+    padding-right:4px;
+    border-right:1px solid #a8a8a8;
+}
+.current_group_member .info_name{
+    font-family: "MuseoSlabRegular",serif;
+    font-size:18px;
+    margin-top:-2px;
+    padding-bottom:2px;
+    height:auto;
+    color:#303030;
+
+}
+#ready{
+    float:right;
+    font-family: 'Gochi Hand', cursive;
+    background-image: linear-gradient(to bottom,  #8fb42c,#7B9A25);
+    font-size:20px;
+    font-weight:normal;
+}
+
+#ready:hover{
+    background-color:#7B9A25;
+}
+
+
+#readyicon{
+    float:right;
+    text-decoration:none;
+    position:relative;
+    index:10;
+    color:#7B9A25;
+    top:-8px;
+    right:5px;
+    display:none;
+   
+}
+.member_ready #readyicon{
+    display:block;
+}
+.member_ready .member_info{
+    margin-top:-33px;
+}

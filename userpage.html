@@ -4,11 +4,14 @@
         <title>
             MEALShake Mockup
         </title>
+        <link href="css/bootstrap.min.css" rel="stylesheet" media="screen"/>
+        <link href="css/font-awesome.min.css" rel="stylesheet" media="screen"/>
         <link rel="stylesheet" type="text/css" href="WebsiteMockupCSS.css" />
+        <link rel="stylesheet" type="text/css" href="match.css"/>
         <link rel="stylesheet" type="text/css" href="option.css"/>
-        <link rel="stylesheet" type="text/css" href="match.css" />
-        <link rel="stylesheet" type="text/css" href="loginpage.css"/>
         <link rel="stylesheet" type="text/css" href="notif.css"/>
+        <link rel="stylesheet" type="text/css" href="current_group.css"/>
+        <link href='http://fonts.googleapis.com/css?family=Permanent+Marker|Gochi+Hand|Just+Me+Again+Down+Here' rel='stylesheet' type='text/css'>
         <script src="http://code.jquery.com/jquery-1.9.0.js"></script>
         <script src="userjs.js"></script>
     </head>
@@ -19,21 +22,175 @@
                     Join 
                 </div>
                 <div id="joinmess">
+                    <script>
+                        $('.notif_item[name=join_request]').click(function(){
+                            var req = {};
+                            req['action'] = "getgroup";
+                            req['groupID'] = $(this).attr('value');
+                            $.ajax({
+                                type: "POST",
+                                url: "door.php",
+                                data: req,
+                                dataType: 'JSON',
+                                success: function(response){joinRequestParser(response);},
+                                error: function (jqXHR, textStatus, errorThrown) {
+                                alert("error!");
+                                alert(jqXHR.responseText);},
+                                complete: function(){setTimeout(function(){get();}, 5000);},
+                            })
+                            $(this).remove();
+                        })
+                        function joinRequestParser(response){
+                            var g = $.parseJSON(response)
+                            var groupinfo = '<div class="group_span_noti" id="joinvote" val='+g.group.ID+'>\
+                                            <div class="group">\
+                                            <div class="member_list">'
+                            var number = g.group.nop;
+                            for(var k=0; k<number; k++){
+                                groupinfo += '<div class="group_member">\
+                                                <img src='+g.member[k].photolink+'>\
+                                            </div>'
+                            }
+                            groupinfo += '</div>\
+                                            <div class="group_info">\
+                                                 <div class="distance">\
+                                                     Average distance: '+g.group.avgdist+' miles\
+                                                 </div>\
+                                                 <div class="food_type">\
+                                                     Food type: '+foodtyping(g.group.foodtype[0])+' '+foodtyping(g.group.foodtype[1])+' '+foodtyping(g.group.foodtype[2])+'\
+                                                 </div>\
+                                                 <div class="price_range">\
+                                                     Price range $'+g.group.pricemin+'-$'+g.group.pricemax+'\
+                                                 </div>\
+                                                 <div class="capacity">\
+                                                     Capacity: '+g.group.capacity+'\
+                                                 </div>\
+                                             </div>\
+                                         </div>\
+                                         <ul class="memberfull_list">'
+                            for(var k=0; k<number; k++){
+                                var foodtype = "";
+                                for(var j=0; j<g.member[k].foodtype.length; j++){
+                                    foodtype += foodtyping(g.member[k].foodtype[j])+' ';
+                                }
+                                groupinfo += '<li class="member_fullinfo">\
+                                                        <a class="member_img" href="">\
+                                                            <img src='+g.member[k].photolink+'>\
+                                                        </a>\
+                                                        <ul class="member_info">\
+                                                            <li>\
+                                                                '+g.member[k].firstname+' '+g.member[k].lastname+'\
+                                                            </li>\
+                                                            <li>\
+                                                                Gender: '+g.member[k].gender+'\
+                                                            </li>\
+                                                            <li>\
+                                                                Distance: '+g.member[k].distance+'\
+                                                            </li>\
+                                                            <li>\
+                                                                Food Type: '+foodtype+'\
+                                                            </li>\
+                                                        </ul>\
+                                                </li>'
+                            }
+                            groupinfo += '</ul></div>';
+                            $('#popinfo').html(groupinfo);
+                            $('#requsetpopup').show(slow);
+                        }
+                    </script>
                 </div>
             </div>
-            <div class="add">
+            <div class="addd">
                 <div class="header" id="inviteheader">
                     Add
                 </div>
                 <div id="addmess">
+                    <script>
+                        $('.notif_item[name=add_request]').click(function(){
+                            var req = {};
+                            req['action'] = "getgroup";
+                            req['groupID'] = $(this).attr('value');
+                            $.ajax({
+                                type: "POST",
+                                url: "door.php",
+                                data: req,
+                                dataType: 'JSON',
+                                success: function(response){addRequestParser(response);},
+                                error: function (jqXHR, textStatus, errorThrown) {
+                                alert("error!");
+                                alert(jqXHR.responseText);},
+                                complete: function(){setTimeout(function(){get();}, 5000);},
+                            })
+                            $(this).remove();
+                        })
+                        function addRequestParser(response){
+                            var g = $.parseJSON(response)
+                            var groupinfo = '<div class="group_span_noti" id="addvote" val='+g.group.ID+'>\
+                                            <div class="group">\
+                                            <div class="member_list">'
+                            var number = g.group.nop;
+                            for(var k=0; k<number; k++){
+                                groupinfo += '<div class="group_member">\
+                                                <img src='+g.member[k].photolink+'>\
+                                            </div>'
+                            }
+                            groupinfo += '</div>\
+                                            <div class="group_info">\
+                                                 <div class="distance">\
+                                                     Average distance: '+g.group.avgdist+' miles\
+                                                 </div>\
+                                                 <div class="food_type">\
+                                                     Food type: '+foodtyping(g.group.foodtype[0])+' '+foodtyping(g.group.foodtype[1])+' '+foodtyping(g.group.foodtype[2])+'\
+                                                 </div>\
+                                                 <div class="price_range">\
+                                                     Price range $'+g.group.pricemin+'-$'+g.group.pricemax+'\
+                                                 </div>\
+                                                 <div class="capacity">\
+                                                     Capacity: '+g.group.capacity+'\
+                                                 </div>\
+                                             </div>\
+                                         </div>\
+                                         <ul class="memberfull_list">'
+                            for(var k=0; k<number; k++){
+                                var foodtype = "";
+                                for(var j=0; j<g.member[k].foodtype.length; j++){
+                                    foodtype += foodtyping(g.member[k].foodtype[j])+' ';
+                                }
+                                groupinfo += '<li class="member_fullinfo">\
+                                                        <a class="member_img" href="">\
+                                                            <img src='+g.member[k].photolink+'>\
+                                                        </a>\
+                                                        <ul class="member_info">\
+                                                            <li>\
+                                                                '+g.member[k].firstname+' '+g.member[k].lastname+'\
+                                                            </li>\
+                                                            <li>\
+                                                                Gender: '+g.member[k].gender+'\
+                                                            </li>\
+                                                            <li>\
+                                                                Distance: '+g.member[k].distance+'\
+                                                            </li>\
+                                                            <li>\
+                                                                Food Type: '+foodtype+'\
+                                                            </li>\
+                                                        </ul>\
+                                                </li>'
+                            }
+                            groupinfo += '</ul></div>';
+                            $('#popinfo').html(groupinfo);
+                            $('#requsetpopup').show(slow);
+                        }
+                    </script>
                 </div>
             </div>
         </div>
         <div id="doc">
             <div id="heading">
-                <div id="notif">2 Notification</div>
+                <a id="notif">
+                    <i class="icon-comments icon-large"></i>
+                    <span>2</span>
+                </a>
                 <div id="heading-content">
-                    
                     <img id="logo" src="" />
                     <div Id="bardiv">
                     <ul id="bar">
@@ -61,25 +218,20 @@
                         </div>
                         <ul id="dropdown_list">
                             <li class="dropdown_item">
-                                <a href="">My Profile</a>
-                            </li>
-                            <li class="dropdown_item">
-                                <a href="">Edit Profile</a>
-                            </li>
-                            <li class="dropdown_item">
-                                <a href="">Settings</a>
+                                <a>My Profile</a>
                             </li>
                             <li class="dropdown_item">
                                 <a id="logout">Sign Out</a>
                             </li>
                         </ul>
                     </div>
-                   
-                    
                 </div>
             </div>
             <div id="content">
-                     <div id="main">
+                    <div id="main">
+                    <div id="current_group">
+                    <a id="ready" class="btn btn-success">Ready !</a>
+                    </div>   
                     <div id="option">
                         <div class="options">
                             <div class="optionheader">
@@ -168,51 +320,51 @@
                                 </div>
                                 <div id="CUISINE_FILTERS">
                                 <div class="chkSet">
-                                <input class="input_filter" type="checkbox" name="cuisine" id="cuisine_1" onclick="eateryUpdateListByFilterChange(event);">
+                                <input class="input_filter" type="checkbox" name="cuisine" id="cuisine_1">
                                 <label for="cuisine_1">American</label>
                                 </div>
                                 <div class="chkSet">
-                                <input class="input_filter" type="checkbox" name="cuisine" id="cuisine_2" onclick="eateryUpdateListByFilterChange(event);">
+                                <input class="input_filter" type="checkbox" name="cuisine" id="cuisine_2">
                                 <label for="cuisine_2">Chinese</label>
                                 </div>
                                 <div class="chkSet">
-                                <input class="input_filter" type="checkbox" name="cuisine" id="cuisine_3" onclick="eateryUpdateListByFilterChange(event);">
+                                <input class="input_filter" type="checkbox" name="cuisine" id="cuisine_3">
                                 <label for="cuisine_3">French</label>
                                 </div>
                                 <div class="chkSet">
-                                <input class="input_filter" type="checkbox" name="cuisine" id="cuisine_4" onclick="eateryUpdateListByFilterChange(event);">
+                                <input class="input_filter" type="checkbox" name="cuisine" id="cuisine_4">
                                 <label for="cuisine_4">Italian</label>
                                 </div>
                                 <div class="chkSet">
-                                <input class="input_filter" type="checkbox" name="cuisine" id="cuisine_5" onclick="eateryUpdateListByFilterChange(event);">
+                                <input class="input_filter" type="checkbox" name="cuisine" id="cuisine_5">
                                 <label for="cuisine_5">Mexican</label>
                                 </div>
                                 <div class="chkSet">
-                                <input class="input_filter" type="checkbox" name="cuisine" id="cuisine_6" onclick="eateryUpdateListByFilterChange(event);">
+                                <input class="input_filter" type="checkbox" name="cuisine" id="cuisine_6">
                                 <label for="cuisine_6">Japanese</label>
                                 </div>
                                 <div class="chkSet">
-                                <input class="input_filter" type="checkbox" name="cuisine" id="cuisine_7" onclick="eateryUpdateListByFilterChange(event);">
+                                <input class="input_filter" type="checkbox" name="cuisine" id="cuisine_7">
                                 <label for="cuisine_7">Indian</label>
                                 </div>
                                 <div class="chkSet">
-                                <input class="input_filter" type="checkbox" name="cuisine" id="cuisine_8" onclick="eateryUpdateListByFilterChange(event);">
+                                <input class="input_filter" type="checkbox" name="cuisine" id="cuisine_8">
                                 <label for="cuisine_8">Cafe &amp; Dessert</label>
                                 </div>
                                 <div class="chkSet">
-                                <input class="input_filter" type="checkbox" name="cuisine" id="cuisine_9" onclick="eateryUpdateListByFilterChange(event);">
+                                <input class="input_filter" type="checkbox" name="cuisine" id="cuisine_9">
                                 <label for="cuisine_9">Korean</label>
                                 </div>
                                 <div class="chkSet">
-                                <input class="input_filter" type="checkbox" name="cuisine" id="cuisine_10" onclick="eateryUpdateListByFilterChange(event);">
+                                <input class="input_filter" type="checkbox" name="cuisine" id="cuisine_10">
                                 <label for="cuisine_10">Asian</label>
                                 </div>
                                 <div class="chkSet">
-                                <input class="input_filter" type="checkbox" name="cuisine" id="cuisine_11" onclick="eateryUpdateListByFilterChange(event);">
+                                <input class="input_filter" type="checkbox" name="cuisine" id="cuisine_11">
                                 <label for="cuisine_11">Seafood</label>
                                 </div>
                                 <div class="chkSet">
-                                <input class="input_filter" type="checkbox" name="cuisine" id="cuisine_12" onclick="eateryUpdateListByFilterChange(event);">
+                                <input class="input_filter" type="checkbox" name="cuisine" id="cuisine_12">
                                 <label for="cuisine_12">Vegetarian</label>
                                 </div>
                             </form>
@@ -237,7 +389,6 @@
                                     </div>
                                 </form>
                         </div>
-                        
                         <div class="options">
                                 <div class="optionheader">
                                     Number of people   
@@ -265,17 +416,26 @@
                                     <div class="priceinput">
                                         <label for="pricemax">Maximum</label>
                                         <input class="input_filter" type="text" name="price_max" id="pricemax">
-                
                                     </div>
+                                </form>
                         </div>
                         <a id="shake">Shake</a> 
                     </div>
                     <div id="match">
+                        <div id="matchheader">
+                            <span>
+                                Groups we found for you
+                            </span>
+                            <a id="refresh" class="btn btn-info">
+                                <i class="icon-refresh"></i>
+                                Refresh
+                            </a>
+                        </div>
+						<div id="matchinfo">
+						</div>
                     </div>
                 </div>
             </div>
         </div>
-        <?php include 'Char-bar.php';
-        ?>
     </body>
 </html>

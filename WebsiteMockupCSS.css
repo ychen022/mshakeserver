@@ -1,7 +1,7 @@
 body
 {
     margin:0px;
-    background-color:#ffffff;
+    background-color:#eee;
     font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
 }
 
@@ -144,11 +144,7 @@ body
     padding-right:10px;
     color:#c8c8c8;
 }
-#notification{
-    height:60px;
-    width:100px;
-    float:right;
-}
+
 
 #invit{
     color:white;
@@ -158,13 +154,11 @@ body
     text-align:right;
 }
 #content{
+    position:relative;
     width:940px;
     margin:0px auto;
     margin-top:60px;
     background-color:white;
 }
 
-#main div{
-    float:left;
-}
 

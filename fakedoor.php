@@ -1,7 +1,67 @@
 <?php
 $action = $_POST['action'];
 if ($action=='login'){echo "login_success";}
+else if($action=='signup'){echo "login_success";}
 else if($action=='init'){
+    $ult = array();
+    $ult['wantsget'] = 1;
+    $match = array();
+    $group1 = array();
+    $group1info = array();
+    $group1info['nop'] = 2;
+    $type = array();
+    $type[] = 'cuisine_1';
+    $type[] = 'cuisine_5';
+    $type[] = 'cuisine_12';
+    $group1info['foodtype'] = $type;
+    $group1info['pricemin'] = 20;
+    $group1info['pricemax'] = 60;
+    $group1info['avgdist'] = 8.5175;
+    $group1info['capacity'] = 5;
+    $group1['group'] = $group1info;
+    $member1 = array();
+    $member1['firstname'] = "John";
+    $member1['lastname'] = "Bowler";
+    $member1['gender'] = "male";
+    $member1['foodtype'] = $type;
+    $member1['photolink'] = "Min.jpg";
+    $member2 = array();
+    $member2['firstname'] = "Min";
+    $member2['lastname'] = "Zhang";
+    $member2['gender'] = "female";
+    $member2['foodtype'] = $type;
+    $member2['photolink'] = "Min.jpg";
+    $member = array();
+    $member[] = $member1;
+    $member[] = $member2;
+    $group1['member'] = $member;
+    $match[] = $group1;
+    $match[] = $group1;
+    $match[] = $group1;
+    $match[] = $group1;
+    $match[] = $group1;
+    $match[] = $group1;
+    $match[] = $group1;
+    $match[] = $group1;
+    $match[] = $group1;
+    $match[] = $group1;
+    $match[] = $group1;
+    $get = array();
+    $get['match'] = $match;
+    $notification = array();
+    $noti1 = array();
+    $noti1['type'] = "inviteDecision";
+    $noti1['group'] = $member;
+    $noti1['groupID'] = "125";
+    $noti1['decisionType'] = "A";
+    $notification[] = $noti1;
+    $noti2 = array();
+    $noti2['type'] = "joinRequest";
+    $noti2['group'] = $member;
+    $noti2['groupID'] = "125";
+    $notification[] = $noti2;
+    $get['notification']=$notification;
+    $ult['get']=$get;
     $result = array();
     $result['address'] = "18 Catania";
     $result['city'] = "Newport Beach";
@@ -26,11 +86,11 @@ else if($action=='init'){
     $type['cuisine_11'] = 0;
     $type['cuisine_12'] = 0;
     $result['type'] = $type;
-    echo json_encode($result);
+    $ult['option'] = $result;
+    echo json_encode($ult);
 } else if($action=="logout"){
     echo "logout_success";
 } else if($action=="startmatch"){
-    $result = array();
     $match = array();
     $group1 = array();
     $group1info = array();
@@ -72,6 +132,8 @@ else if($action=='init'){
     $match[] = $group1;
     $match[] = $group1;
     $match[] = $group1;
-    $result['match'] = $match;
-    echo json_encode($result);
+    echo json_encode($match);
+}
+else if($action=="get"){
+    echo "good";
 }

@@ -1,10 +1,18 @@
 #notif{
-    position:fixed;
-    width:200px;
-    top:0;
-    left:0;
+    width:100px;
+    padding-left:10px;
+    float:left;
+    padding-top:30px;
+    color:#8F3C32;
+    
 }
 
+#notif span{
+    font-size:12px;
+    padding:0;
+    position:relative;
+    top:-2px;
+}
 #notification{
     position:fixed;
     left:1px;
@@ -15,6 +23,7 @@
     z-index:10;
     background-color:#fff;
     -webkit-box-shadow: 0 3px 8px rgba(0, 0, 0, .25);
+    display:none;
 }
 
 .notif_item{

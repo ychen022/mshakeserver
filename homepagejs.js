@@ -1,4 +1,16 @@
 $(document).ready(function(){
+    var req = {};
+    req['action'] = "usercheck"
+    $.ajax({
+        type: "POST",
+        url: "door.php",
+        data: req,
+        dataType: 'text',
+        error: function (jqXHR, textStatus, errorThrown) {
+        alert("error!");
+        alert(jqXHR.responseText);},
+    })
+    
     $('#signup').hide();
     $('#signupbutton').click(function(){
         $('#signup').show(300);
@@ -61,6 +73,21 @@ $(document).ready(function(){
     function updateHTML(){
         window.location.replace('userpage.html');
     }
+    
+    $('#signuser').keyup(function(){
+        if($(this).val()==""){$(this).css('color', '#c8c8c8')}
+        else{$(this).css("color", "#888888")}
+    })
+ 
+    $('#inemail').keyup(function(){
+        if($(this).val()==""){$(this).css('color', '#c8c8c8')}
+        else{$(this).css("color", "#888888")}
+    })
+ 
+    $('#signpass').keyup(function(){
+        if($(this).val()==""){$(this).css('color', '#c8c8c8')}
+        else{$(this).css("color", "#888888")}
+    })
     
     $('#conpass').keyup(function(){
             if($(this).val()==""){$(this).css('color', '#c8c8c8')}
@@ -253,7 +280,20 @@ $(document).ready(function(){
     
     function signup(response){
         if(response == "signup_success"){
-            updateHTML();
+            var req = {};
+            req['action'] = 'login';
+            req['username'] = $('#signuser').val();
+            req['password'] = $('#signpass').val();
+            $.ajax({
+                url: 'door.php',
+                data: req,
+                type: "POST",
+                datatype: "text",
+                success: function(response){login(response);},
+                error: function (jqXHR, textStatus, errorThrown) {
+                alert("error!");
+                alert(jqXHR.responseText);}
+            })
         } else {
             alert(response);
         }

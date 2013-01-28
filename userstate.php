@@ -83,80 +83,95 @@ class userstate{
 		$gnResult = mysql_query($gNumberQuery, $GLOBALS['db']) or die(mysql_error());
 		$gnRow = mysql_fetch_assoc($gnResult);
 		$groupid = $gnRow['current_group'];
-		$getArray['group'] = grouper::makeGroupArray($groupid, $userid);
-		$getArray['match'] = matcher::refreshMatch($userid);
+		$groupOut = array();
+		$groupOut['group'] = grouper::makeGroupArray($groupid, $userid);
+		$groupOut['member'] = grouper::makeMemberArray($groupid, true);
+		$getArray['group'] = $groupOut;
+		$matchArray = matcher::refreshMatch($userid);
+		$getArray['match'] = $matchArray['match'];
 		
 		$notification=array();
 		
-		$voteCheckQuery = "SELECT voting_invite, voting_join, invite_user_id, join_user_id FROM groups WHERE group_id=".$owngroup;
+		$voteCheckQuery = "SELECT voting_invite, voting_join, invite_group_id, join_group_id FROM groups WHERE group_id=".$groupid;
 		$vcResult = mysql_query($voteCheckQuery, $GLOBALS['db']) or die(mysql_error());
 		$vcRow = mysql_fetch_assoc($vcResult);
 		if ($vcRow){
 			if ($vcRow['voting_invite']==1){ // Create notification array containing a vote
-				$checkVoteQuery = "SELECT max_votes, yes_votes, no_votes FROM voting_invite WHERE group_id=".$owngroup;
+				$inviteGroupQuery = "SELECT invite_group_id FROM groups WHERE group_id=".$groupid;
+				$igResult = mysql_query($inviteGroupQuery, $GLOBALS['db']) or die("getgetresult_55:".mysql_error());
+				$igRow = mysql_fetch_assoc($igResult);
+				$targetGroup = $igRow['invite_group_id'];
+				
+				$checkVoteQuery = "SELECT max_votes, yes_votes, no_votes FROM voting_invite WHERE group_id=".$groupid;
 				$cvResult = mysql_query($checkVoteQuery, $GLOBALS['db']) or die(mysql_error());
 				$cvRow = mysql_fetch_assoc($cvResult);
 				if ($cvRow['yes_votes']/$cvRow['max_votes']>0.6){
-					$notification[]=grouper::makeVoteNotification($owngroup, "inviteDecision", 'A');
+					$notification[]=grouper::makeVoteNotification($targetGroup, "inviteDecision", 'A');
 					// Setup a vote for the invited group
-					grouper::transferInviteToJoin($owngroup, true);
+					grouper::transferInviteToJoin($groupid, true);
 				}else if ($cvRow['no_votes']/$cvRow['max_votes']>0.6){
-					$notification[]=grouper::makeVoteNotification($owngroup, "inviteDecision", 'D');
-					grouper::transferInviteToJoin($owngroup, false);
+					$notification[]=grouper::makeVoteNotification($targetGroup, "inviteDecision", 'D');
+					grouper::transferInviteToJoin($groupid, false);
 				}else{
 					$checkVoteStateQuery = "SELECT invite_vote FROM group_members WHERE user_id=".$userid;
 					$cvsResult = mysql_query($checkVoteStateQuery, $GLOBALS['db']) or die(mysql_error());
 					$cvsRow = mysql_fetch_assoc($cvsResult);
 					$voteStatus = $cvsRow['invite_vote'];
 					
-					if (voteStatus==2){
-						$inviteGroupQuery = "SELECT invite_group_id FROM groups WHERE group_id=".$owngroup;
-						$igResult = mysql_query($inviteGroupQuery, $GLOBALS['db']) or die(mysql_error());
-						$igRow = mysql_fetch_assoc($igResult);
-						$targetGroup = $igRow['invite_group_id'];
-						$notification[] = grouper::createVoteNotification($targetGroup, "inviteRequest", null, $userid);
-						}
+					if ($voteStatus==2){
+						$notification[] = grouper::makeVoteNotification($targetGroup, "inviteRequest", null, $userid);
+					}elseif ($voteStatus==1){ //TODO debug
+						$notification[] = grouper::makeVoteNotification($targetGroup, "inviteRequest", null, $userid);
+					}
 				}
 			}
-			if ($vcRow['voting_invite==2']){ // Create notification array containing a result
+			if ($vcRow['voting_invite']==2){ // Create notification array containing a result
 				$checkVoteStateQuery = "SELECT invite_vote FROM group_members WHERE user_id=".$userid;
 				$cvsResult = mysql_query($checkVoteStateQuery, $GLOBALS['db']) or die(mysql_error());
 				$cvsRow = mysql_fetch_assoc($cvsResult);
 				$voteStatus = $cvsRow['invite_vote'];
+				
+				$inviteGroupQuery = "SELECT invite_group_id FROM groups WHERE group_id=".$groupid;
+				$igResult = mysql_query($inviteGroupQuery, $GLOBALS['db']) or die("getgetresult_55:".mysql_error());
+				$igRow = mysql_fetch_assoc($igResult);
+				$targetGroup = $igRow['invite_group_id'];
 			
-				if (voteStatus==1){
-					$getDecisionQuery = "SELECT voting_result FROM groups WHERE group_id=".$owngroup;
+				if ($voteStatus==1){
+					$getDecisionQuery = "SELECT voting_result FROM groups WHERE group_id=".$groupid;
 					$gdResult = mysql_query($getDecisionQuery, $GLOBALS['db']) or die(mysql_error());
 					$gdRow = mysql_fetch_assoc($gdResult);
 					$vdecision = $gdRow['voting_result'];
-					$notification[] = grouper::createVoteNotification($owngroup, "inviteDecision", $vdecision, $userid);
+					$notification[] = grouper::makeVoteNotification($targetGroup, "inviteDecision", $vdecision, $userid);
 					$changeVoteStateQuery = "UPDATE group_members SET invite_vote=2 WHERE user_id=".$userid;
 					$cgvResult = mysql_query($changeVoteStateQuery, $GLOBALS['db']) or die(mysql_error());
 				}
 			}
 			if ($vcRow['voting_join']==1){ // Create notification array containing a vote
-				$checkVoteQuery = "SELECT max_votes, yes_votes, no_votes FROM voting_join WHERE group_id=".$owngroup;
+				$checkVoteQuery = "SELECT max_votes, yes_votes, no_votes FROM voting_join WHERE group_id=".$groupid;
 				$cvResult = mysql_query($checkVoteQuery, $GLOBALS['db']) or die(mysql_error());
 				$cvRow = mysql_fetch_assoc($cvResult);
+				
+				$joinGroupQuery = "SELECT join_group_id FROM groups WHERE group_id=".$groupid;
+				$jgResult = mysql_query($joinGroupQuery, $GLOBALS['db']) or die("getgetresult_55:".mysql_error());
+				$jgRow = mysql_fetch_assoc($jgResult);
+				$targetGroup = $jgRow['join_group_id'];
 				if ($cvRow['yes_votes']/$cvRow['max_votes']>0.6){
-					$notification[]=grouper::makeVoteNotification($owngroup, "joinDecision", 'A');
+					$notification[]=grouper::makeVoteNotification($targetGroup, "joinDecision", 'A');
 					// Setup a vote for the invited group
-					grouper::cleanUpJoin($owngroup, true);
+					grouper::cleanUpJoin($groupid, true);
 				}else if ($cvRow['no_votes']/$cvRow['max_votes']>0.6){
-					$notification[]=grouper::makeVoteNotification($owngroup, "joinDecision", 'D');
-					grouper::cleanUpJoin($owngroup, false);
+					$notification[]=grouper::makeVoteNotification($targetGroup, "joinDecision", 'D');
+					grouper::cleanUpJoin($groupid, false);
 				}else{
 					$checkVoteStateQuery = "SELECT join_vote FROM group_members WHERE user_id=".$userid;
 					$cvsResult = mysql_query($checkVoteStateQuery, $GLOBALS['db']) or die(mysql_error());
 					$cvsRow = mysql_fetch_assoc($cvsResult);
 					$voteStatus = $cvsRow['join_vote'];
 						
-					if (voteStatus==2){
-						$joinGroupQuery = "SELECT join_group_id FROM groups WHERE group_id=".$owngroup;
-						$jgResult = mysql_query($joinGroupQuery, $GLOBALS['db']) or die(mysql_error());
-						$jgRow = mysql_fetch_assoc($jgResult);
-						$targetGroup = $jgRow['join_group_id'];
-						$notification[] = grouper::createVoteNotification($targetGroup, "joinRequest", null);
+					if ($voteStatus==2){
+						$notification[] = grouper::makeVoteNotification($targetGroup, "joinRequest", null);
+					}elseif ($voteStatus==1){ //TODO debug
+						$notification[] = grouper::makeVoteNotification($targetGroup, "joinRequest", null);
 					}
 				}
 			}else if ($vcRow['voting_join']==2){ // Create notification array containing a result
@@ -164,14 +179,19 @@ class userstate{
 				$cvsResult = mysql_query($checkVoteStateQuery, $GLOBALS['db']) or die(mysql_error());
 				$cvsRow = mysql_fetch_assoc($cvsResult);
 				$voteStatus = $cvsRow['join_vote'];
+				
+				$joinGroupQuery = "SELECT join_group_id FROM groups WHERE group_id=".$groupid;
+				$jgResult = mysql_query($joinGroupQuery, $GLOBALS['db']) or die("getgetresult_55:".mysql_error());
+				$jgRow = mysql_fetch_assoc($jgResult);
+				$targetGroup = $jgRow['join_group_id'];
 			
-				if (voteStatus==1){
-					$getDecisionQuery = "SELECT join_group_id, voting_result FROM groups WHERE group_id=".$owngroup;
+				if ($voteStatus==1){
+					$getDecisionQuery = "SELECT join_group_id, voting_result FROM groups WHERE group_id=".$groupid;
 					$gdResult = mysql_query($getDecisionQuery, $GLOBALS['db']) or die(mysql_error());
 					$gdRow = mysql_fetch_assoc($gdResult);
 					$vdecision = $gdRow['voting_result'];
 					$otherGroup = $gdRow['join_group_id'];
-					$notification[] = grouper::createVoteNotification($otherGroup, "joinDecision", $vdecision);
+					$notification[] = grouper::makeVoteNotification($otherGroup, "joinDecision", $vdecision);
 					$changeVoteStateQuery = "UPDATE group_members SET join_vote=2 WHERE user_id=".$userid;
 					$cgvResult = mysql_query($changeVoteStateQuery, $GLOBALS['db']) or die(mysql_error());
 				}
